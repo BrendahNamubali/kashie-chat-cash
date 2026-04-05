@@ -21,7 +21,7 @@ type ConversationState =
   | "awaiting_revenue"
   | "awaiting_expenses";
 
-const WELCOME = `Hey there! 👋 I'm Kashie, your friendly finance buddy.\n\nI help you keep track of your daily business money — no complicated stuff, I promise!\n\nTap a button below or just type to get started.`;
+const WELCOME = `Hey there! 👋 I'm Kashie, your friendly finance buddy.\n\nI help you keep track of your daily business money — no complicated stuff, just clear and simple.\n\nTap a button below or type to get started.`;
 
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -108,9 +108,9 @@ const Index = () => {
     } else if (lower.includes("summary") || lower.includes("week") || lower.includes("report")) {
       handleQuickAction("summary");
     } else if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
-      botReply("Hey! 😊 Ready to check on your money today? Tap a button below or just tell me what you need!");
+      botReply("Hey! 😊 Ready to check on your money today? Tap a button below or tell me what you need.");
     } else {
-      botReply("I can help you log today's money or show your weekly summary! Just tap one of the buttons below, or type what you'd like to do. 😊");
+      botReply("I can help you log today's money or show your weekly summary. Tap a button below or just tell me what you'd like to do.");
     }
   };
 
