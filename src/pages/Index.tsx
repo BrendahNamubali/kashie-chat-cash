@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Send } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
 import QuickActions from "@/components/QuickActions";
+import TypingIndicator from "@/components/TypingIndicator";
 import {
   saveEntry,
   getProfitMessage,
@@ -29,6 +30,7 @@ const Index = () => {
   const [input, setInput] = useState("");
   const [state, setState] = useState<ConversationState>("idle");
   const [pendingRevenue, setPendingRevenue] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -37,7 +39,7 @@ const Index = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages, isTyping, scrollToBottom]);
 
   const addMessage = (content: string, sender: "user" | "bot") => {
     const msg: Message = {
@@ -50,8 +52,12 @@ const Index = () => {
     return msg;
   };
 
-  const botReply = (content: string, delay = 500) => {
-    setTimeout(() => addMessage(content, "bot"), delay);
+  const botReply = (content: string, delay = 600) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      addMessage(content, "bot");
+    }, delay);
   };
 
   const parseNumber = (text: string): number | null => {
@@ -62,7 +68,7 @@ const Index = () => {
 
   const handleSend = () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || isTyping) return;
     setInput("");
     addMessage(text, "user");
 
@@ -74,7 +80,7 @@ const Index = () => {
       }
       setPendingRevenue(num);
       setState("awaiting_expenses");
-      botReply(`Got it — you made $${num.toLocaleString()} today! 💰\n\nNow, how much did you spend today?`);
+      botReply(`Got it — you made $${num.toLocaleString()} today! 💰\n\nStep 2 of 2: Now, how much did you spend today? (e.g. 200 or $350)`);
       return;
     }
 
@@ -91,7 +97,7 @@ const Index = () => {
 
       saveEntry({ date: today, revenue, expenses, profit });
       setState("idle");
-      botReply(getProfitMessage(profit, revenue, expenses));
+      botReply(getProfitMessage(profit, revenue, expenses), 800);
       return;
     }
 
@@ -109,14 +115,21 @@ const Index = () => {
   };
 
   const handleQuickAction = (action: string) => {
+    if (isTyping) return;
     if (action === "log") {
       addMessage("Log today's money", "user");
       setState("awaiting_revenue");
-      botReply("Awesome! Let's do this 💪\n\nHow much did you make today? (Just type the amount, like 500 or $1,200)");
+      botReply("Awesome! Let's do this 💪\n\nStep 1 of 2: How much did you earn today?\n(Just type the amount, like 500 or $1,200)");
     } else if (action === "summary") {
       addMessage("Weekly summary", "user");
       botReply(getWeeklySummaryMessage());
     }
+  };
+
+  const getPlaceholder = () => {
+    if (state === "awaiting_revenue") return "Type your revenue amount...";
+    if (state === "awaiting_expenses") return "Type your expenses amount...";
+    return "Type a message...";
   };
 
   return (
@@ -128,7 +141,9 @@ const Index = () => {
         </div>
         <div>
           <h1 className="font-semibold text-base">Kashie</h1>
-          <p className="text-xs opacity-80">Your finance friend</p>
+          <p className="text-xs opacity-80">
+            {isTyping ? "typing..." : "Your finance friend"}
+          </p>
         </div>
       </div>
 
@@ -142,11 +157,12 @@ const Index = () => {
             timestamp={msg.timestamp}
           />
         ))}
+        {isTyping && <TypingIndicator />}
         <div ref={bottomRef} />
       </div>
 
       {/* Quick Actions */}
-      {state === "idle" && (
+      {state === "idle" && !isTyping && (
         <QuickActions onAction={handleQuickAction} />
       )}
 
@@ -156,18 +172,14 @@ const Index = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder={
-            state === "awaiting_revenue"
-              ? "Enter today's revenue..."
-              : state === "awaiting_expenses"
-              ? "Enter today's expenses..."
-              : "Type a message..."
-          }
-          className="flex-1 px-4 py-2.5 rounded-full bg-muted text-foreground text-sm placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
+          placeholder={getPlaceholder()}
+          disabled={isTyping}
+          className="flex-1 px-4 py-2.5 rounded-full bg-muted text-foreground text-sm placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         <button
           onClick={handleSend}
-          className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity"
+          disabled={isTyping}
+          className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           <Send className="w-4 h-4" />
         </button>
