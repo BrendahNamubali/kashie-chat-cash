@@ -9,7 +9,6 @@ const STORAGE_KEY = "kashie_entries";
 
 export function saveEntry(entry: DailyEntry) {
   const entries = getEntries();
-  // Replace if same date exists
   const idx = entries.findIndex((e) => e.date === entry.date);
   if (idx >= 0) entries[idx] = entry;
   else entries.push(entry);
@@ -39,23 +38,25 @@ export function formatMoney(n: number): string {
 }
 
 export function getProfitMessage(profit: number, revenue: number, expenses: number): string {
-  const profitStr = formatMoney(Math.abs(profit));
-  let msg = "";
+  const revenueStr = formatMoney(revenue);
+  const expensesStr = formatMoney(expenses);
 
   if (profit > 0) {
-    msg = `Great news! 🎉 You made ${profitStr} in profit today!\n\nYou brought in ${formatMoney(revenue)} and spent ${formatMoney(expenses)}. That means you kept money in your pocket — nice work!`;
-    if (profit / revenue > 0.3) {
-      msg += `\n\n💡 Tip: Your profit margin is really healthy! Consider setting aside a small amount for a rainy day fund.`;
-    } else {
-      msg += `\n\n💡 Tip: Try to see if any of your expenses can be reduced even slightly — small savings add up fast!`;
+    const profitStr = formatMoney(profit);
+    const ratio = profit / revenue;
+
+    if (ratio > 0.3) {
+      return `You made a profit of ${profitStr} today — nice work! 🎉\n\nYou earned ${revenueStr} and spent ${expensesStr}. That means you kept a good chunk of what you made.\n\n💡 Suggestion: Since you're doing well, try putting a small amount aside as savings. Even a little adds up over time!`;
     }
-  } else if (profit === 0) {
-    msg = `You broke even today — ${formatMoney(revenue)} in, ${formatMoney(expenses)} out. Not bad!\n\n💡 Tip: Tomorrow, try to either boost sales a bit or trim one small cost. Every little bit helps!`;
-  } else {
-    msg = `Today you spent ${profitStr} more than you earned. Revenue was ${formatMoney(revenue)} and expenses were ${formatMoney(expenses)}.\n\nDon't worry — some days are like that! 💪\n\n💡 Tip: Take a look at today's biggest expense. Is there a way to reduce or delay it?`;
+    return `You made a profit of ${profitStr} today, which is a good sign! 💰\n\nYou earned ${revenueStr} and spent ${expensesStr}. You're in the green, but your expenses are a bit high compared to what you earned.\n\n💡 Suggestion: Take a look at what you spent today and see if there's one thing you could cut back on tomorrow.`;
   }
 
-  return msg;
+  if (profit === 0) {
+    return `You broke even today — you earned ${revenueStr} and spent the same amount.\n\nThat's not bad! You didn't lose any money. 👍\n\n💡 Suggestion: Tomorrow, try to find one small way to either earn a bit more or spend a bit less. Small changes make a big difference!`;
+  }
+
+  const lossStr = formatMoney(Math.abs(profit));
+  return `Today you spent ${lossStr} more than you earned. You brought in ${revenueStr} but spent ${expensesStr}.\n\nDon't worry — some days are like that. What matters is that you're tracking it! 💪\n\n💡 Suggestion: Look at your biggest expense today. Is there a way to reduce it or push it to a better day?`;
 }
 
 export function getWeeklySummaryMessage(): string {
@@ -68,18 +69,19 @@ export function getWeeklySummaryMessage(): string {
   const totalRevenue = entries.reduce((s, e) => s + e.revenue, 0);
   const totalExpenses = entries.reduce((s, e) => s + e.expenses, 0);
   const totalProfit = totalRevenue - totalExpenses;
+  const days = entries.length;
 
-  let msg = `📊 Here's your week at a glance (${entries.length} day${entries.length > 1 ? "s" : ""}):\n\n`;
-  msg += `💰 Total Revenue: ${formatMoney(totalRevenue)}\n`;
-  msg += `💸 Total Expenses: ${formatMoney(totalExpenses)}\n`;
-  msg += `${totalProfit >= 0 ? "✅" : "🔴"} Total Profit: ${formatMoney(totalProfit)}\n\n`;
+  let msg = `📊 Here's your week at a glance (${days} day${days > 1 ? "s" : ""}):\n\n`;
+  msg += `💰 Money earned: ${formatMoney(totalRevenue)}\n`;
+  msg += `💸 Money spent: ${formatMoney(totalExpenses)}\n`;
+  msg += `${totalProfit >= 0 ? "✅" : "🔴"} What you kept: ${formatMoney(totalProfit)}\n\n`;
 
   if (totalProfit > 0) {
-    msg += `You're in the green! That means your business brought in more than it spent — keep it up! 🚀\n\n💡 Consider investing some of that profit back into growing your business.`;
+    msg += `You earned more than you spent this week — that's great! You're moving in the right direction. 🚀\n\n💡 Suggestion: Think about putting some of that extra money back into your business to help it grow.`;
   } else if (totalProfit === 0) {
-    msg += `You broke even this week. Not losing money is a win! Focus on finding one way to boost revenue next week.`;
+    msg += `You broke even this week. You didn't lose money, and that's something! 👍\n\n💡 Suggestion: Pick one thing this week that cost more than expected and see if you can find a cheaper way to do it.`;
   } else {
-    msg += `This week was tough — you spent more than you earned. But knowing that is the first step to fixing it!\n\n💡 Look at your highest-expense days and see what can be cut or postponed.`;
+    msg += `This week was a tough one — you spent more than you earned. But the fact that you're tracking it means you can fix it!\n\n💡 Suggestion: Look at the days where you spent the most and ask yourself: was that spending necessary, or can it wait?`;
   }
 
   return msg;
