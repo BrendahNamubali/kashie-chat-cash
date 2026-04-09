@@ -7,6 +7,10 @@ import {
   saveEntry,
   getProfitMessage,
   getWeeklySummaryMessage,
+  getBusinessName,
+  saveBusinessName,
+  upsertInventoryItem,
+  getInventorySummaryMessage,
 } from "@/lib/finance";
 
 interface Message {
@@ -19,7 +23,11 @@ interface Message {
 type ConversationState =
   | "idle"
   | "awaiting_revenue"
-  | "awaiting_expenses";
+  | "awaiting_expenses"
+  | "awaiting_business_name"
+  | "awaiting_item_name"
+  | "awaiting_item_quantity"
+  | "awaiting_item_unit";
 
 const WELCOME = `Hey there! 👋 I'm Kashie, your friendly finance buddy.\n\nI help you keep track of your daily business money — no complicated stuff, just clear and simple.\n\nTap a button below or type to get started.`;
 
@@ -30,6 +38,8 @@ const Index = () => {
   const [input, setInput] = useState("");
   const [state, setState] = useState<ConversationState>("idle");
   const [pendingRevenue, setPendingRevenue] = useState(0);
+  const [pendingItemName, setPendingItemName] = useState("");
+  const [pendingItemQty, setPendingItemQty] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +50,17 @@ const Index = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping, scrollToBottom]);
+
+  // Greet with business name on load
+  useEffect(() => {
+    (async () => {
+      const name = await getBusinessName();
+      if (name) {
+        addMessage(`Welcome back! Great to see ${name} doing business today 😊`, "bot");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const addMessage = (content: string, sender: "user" | "bot") => {
     const msg: Message = {
@@ -55,6 +76,15 @@ const Index = () => {
   const botReply = (content: string, delay = 600) => {
     setIsTyping(true);
     setTimeout(() => {
+      setIsTyping(false);
+      addMessage(content, "bot");
+    }, delay);
+  };
+
+  const botReplyAsync = (fn: () => Promise<string>, delay = 600) => {
+    setIsTyping(true);
+    setTimeout(async () => {
+      const content = await fn();
       setIsTyping(false);
       addMessage(content, "bot");
     }, delay);
@@ -101,16 +131,54 @@ const Index = () => {
       return;
     }
 
+    if (state === "awaiting_business_name") {
+      saveBusinessName(text);
+      setState("idle");
+      botReply(`Love it! I'll remember "${text}" from now on 🏪`);
+      return;
+    }
+
+    if (state === "awaiting_item_name") {
+      setPendingItemName(text);
+      setState("awaiting_item_quantity");
+      botReply(`Got it — "${text}". How many do you have in stock right now?`);
+      return;
+    }
+
+    if (state === "awaiting_item_quantity") {
+      const num = parseNumber(text);
+      if (num === null) {
+        botReply("I need a number for the quantity. Like 50 or 120.");
+        return;
+      }
+      setPendingItemQty(num);
+      setState("awaiting_item_unit");
+      botReply(`${num} of those — got it! What's the unit? (e.g. pieces, kg, boxes, liters)`);
+      return;
+    }
+
+    if (state === "awaiting_item_unit") {
+      const unit = text.toLowerCase();
+      upsertInventoryItem({ item_name: pendingItemName, quantity: pendingItemQty, unit });
+      setState("idle");
+      botReply(`Done! Updated "${pendingItemName}" → ${pendingItemQty} ${unit} 📦\n\n💡 I'll warn you when stock gets low. You can check anytime with "Update stock".`);
+      return;
+    }
+
     // Idle state — detect intent
     const lower = text.toLowerCase();
-    if (lower.includes("log") || lower.includes("today") || lower.includes("record") || lower.includes("add")) {
+    if (lower.includes("log") || lower.includes("today") || lower.includes("record") || lower.includes("add money")) {
       handleQuickAction("log");
     } else if (lower.includes("summary") || lower.includes("week") || lower.includes("report")) {
       handleQuickAction("summary");
+    } else if (lower.includes("stock") || lower.includes("inventory") || lower.includes("item")) {
+      handleQuickAction("inventory");
+    } else if (lower.includes("business") || lower.includes("name") || lower.includes("shop")) {
+      handleQuickAction("business_name");
     } else if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
       botReply("Hey! 😊 Ready to check on your money today? Tap a button below or tell me what you need.");
     } else {
-      botReply("I can help you log today's money or show your weekly summary. Tap a button below or just tell me what you'd like to do.");
+      botReply("I can help you log money, show your weekly summary, update stock, or set your business name. Tap a button below or just tell me what you'd like to do.");
     }
   };
 
@@ -122,13 +190,34 @@ const Index = () => {
       botReply("Awesome! Let's do this 💪\n\nStep 1 of 2: How much did you earn today?\n(Just type the amount, like 500 or $1,200)");
     } else if (action === "summary") {
       addMessage("Weekly summary", "user");
-      botReply(getWeeklySummaryMessage());
+      botReplyAsync(() => getWeeklySummaryMessage());
+    } else if (action === "inventory") {
+      addMessage("Update stock", "user");
+      botReplyAsync(async () => {
+        const summary = await getInventorySummaryMessage();
+        setState("awaiting_item_name");
+        return summary + "\n\nWhat item would you like to update? Type the item name.";
+      });
+    } else if (action === "business_name") {
+      addMessage("My business", "user");
+      setState("awaiting_business_name");
+      botReplyAsync(async () => {
+        const current = await getBusinessName();
+        if (current) {
+          return `Your business is currently saved as "${current}" 🏪\n\nWant to change it? Just type the new name.`;
+        }
+        return "What's the name of your business? I'd love to know! 🏪";
+      });
     }
   };
 
   const getPlaceholder = () => {
     if (state === "awaiting_revenue") return "Type your revenue amount...";
     if (state === "awaiting_expenses") return "Type your expenses amount...";
+    if (state === "awaiting_business_name") return "Type your business name...";
+    if (state === "awaiting_item_name") return "Type item name...";
+    if (state === "awaiting_item_quantity") return "Type quantity...";
+    if (state === "awaiting_item_unit") return "Type unit (e.g. pieces, kg)...";
     return "Type a message...";
   };
 
