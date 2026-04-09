@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      business_profiles: {
+        Row: {
+          business_name: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          business_name: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          business_name?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_entries: {
+        Row: {
+          created_at: string
+          date: string
+          expenses: number
+          id: string
+          profit: number
+          revenue: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          expenses?: number
+          id?: string
+          profit?: number
+          revenue?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          expenses?: number
+          id?: string
+          profit?: number
+          revenue?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inventory_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_name: string
+          quantity: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_name: string
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_name?: string
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
