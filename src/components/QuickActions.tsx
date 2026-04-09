@@ -1,4 +1,4 @@
-import { DollarSign, BarChart3 } from "lucide-react";
+import { DollarSign, BarChart3, Package, Store } from "lucide-react";
 
 interface QuickActionsProps {
   onAction: (action: string) => void;
@@ -7,7 +7,7 @@ interface QuickActionsProps {
 
 const QuickActions = ({ onAction, disabled }: QuickActionsProps) => {
   return (
-    <div className="flex gap-2 px-4 py-2">
+    <div className="flex flex-wrap gap-2 px-4 py-2">
       <button
         onClick={() => onAction("log")}
         disabled={disabled}
@@ -23,6 +23,22 @@ const QuickActions = ({ onAction, disabled }: QuickActionsProps) => {
       >
         <BarChart3 className="w-4 h-4" />
         Weekly summary
+      </button>
+      <button
+        onClick={() => onAction("inventory")}
+        disabled={disabled}
+        className="flex items-center gap-2 px-4 py-2 rounded-full border border-primary text-foreground text-sm font-medium hover:bg-secondary transition-colors disabled:opacity-50"
+      >
+        <Package className="w-4 h-4" />
+        Update stock
+      </button>
+      <button
+        onClick={() => onAction("business_name")}
+        disabled={disabled}
+        className="flex items-center gap-2 px-4 py-2 rounded-full border border-primary text-foreground text-sm font-medium hover:bg-secondary transition-colors disabled:opacity-50"
+      >
+        <Store className="w-4 h-4" />
+        My business
       </button>
     </div>
   );

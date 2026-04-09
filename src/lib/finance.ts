@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface DailyEntry {
   date: string;
   revenue: number;
@@ -5,28 +7,111 @@ export interface DailyEntry {
   profit: number;
 }
 
-const STORAGE_KEY = "kashie_entries";
-
-export function saveEntry(entry: DailyEntry) {
-  const entries = getEntries();
-  const idx = entries.findIndex((e) => e.date === entry.date);
-  if (idx >= 0) entries[idx] = entry;
-  else entries.push(entry);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+export interface InventoryItem {
+  id?: string;
+  item_name: string;
+  quantity: number;
+  unit: string;
 }
 
-export function getEntries(): DailyEntry[] {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  return raw ? JSON.parse(raw) : [];
+// ---- Database helpers ----
+
+export async function saveEntry(entry: DailyEntry) {
+  const { error } = await supabase
+    .from("daily_entries")
+    .upsert(
+      { date: entry.date, revenue: entry.revenue, expenses: entry.expenses, profit: entry.profit },
+      { onConflict: "date" }
+    );
+  if (error) console.error("Failed to save entry:", error);
 }
 
-export function getWeekEntries(): DailyEntry[] {
-  const entries = getEntries();
-  const now = new Date();
-  const weekAgo = new Date(now);
+export async function getEntries(): Promise<DailyEntry[]> {
+  const { data, error } = await supabase
+    .from("daily_entries")
+    .select("date, revenue, expenses, profit")
+    .order("date", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data ?? [];
+}
+
+export async function getWeekEntries(): Promise<DailyEntry[]> {
+  const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
-  return entries.filter((e) => new Date(e.date) >= weekAgo);
+  const dateStr = weekAgo.toISOString().split("T")[0];
+
+  const { data, error } = await supabase
+    .from("daily_entries")
+    .select("date, revenue, expenses, profit")
+    .gte("date", dateStr)
+    .order("date", { ascending: true });
+  if (error) { console.error(error); return []; }
+  return data ?? [];
 }
+
+// ---- Business profile ----
+
+export async function getBusinessName(): Promise<string | null> {
+  const { data } = await supabase
+    .from("business_profiles")
+    .select("business_name")
+    .limit(1)
+    .maybeSingle();
+  return data?.business_name ?? null;
+}
+
+export async function saveBusinessName(name: string) {
+  // Upsert: check if one exists
+  const { data: existing } = await supabase
+    .from("business_profiles")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from("business_profiles").update({ business_name: name }).eq("id", existing.id);
+  } else {
+    await supabase.from("business_profiles").insert({ business_name: name });
+  }
+}
+
+// ---- Inventory ----
+
+export async function getInventory(): Promise<InventoryItem[]> {
+  const { data, error } = await supabase
+    .from("inventory_items")
+    .select("id, item_name, quantity, unit")
+    .order("item_name");
+  if (error) { console.error(error); return []; }
+  return data ?? [];
+}
+
+export async function upsertInventoryItem(item: InventoryItem) {
+  if (item.id) {
+    await supabase.from("inventory_items").update({
+      item_name: item.item_name, quantity: item.quantity, unit: item.unit,
+    }).eq("id", item.id);
+  } else {
+    // Check if item with same name exists
+    const { data: existing } = await supabase
+      .from("inventory_items")
+      .select("id")
+      .ilike("item_name", item.item_name)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase.from("inventory_items").update({
+        quantity: item.quantity, unit: item.unit,
+      }).eq("id", existing.id);
+    } else {
+      await supabase.from("inventory_items").insert({
+        item_name: item.item_name, quantity: item.quantity, unit: item.unit,
+      });
+    }
+  }
+}
+
+// ---- Formatting ----
 
 export function formatMoney(n: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -36,6 +121,8 @@ export function formatMoney(n: number): string {
     maximumFractionDigits: 0,
   }).format(n);
 }
+
+// ---- Message generators ----
 
 export function getProfitMessage(profit: number, revenue: number, expenses: number): string {
   const revenueStr = formatMoney(revenue);
@@ -59,8 +146,8 @@ export function getProfitMessage(profit: number, revenue: number, expenses: numb
   return `Today you spent ${lossStr} more than you earned — ${revenueStr} came in, ${expensesStr} went out. Some days are like that, and the important thing is you're keeping track of it.\n\n💡 Look at your biggest expense today. Is there a way to reduce it or move it to a better day?`;
 }
 
-export function getWeeklySummaryMessage(): string {
-  const entries = getWeekEntries();
+export async function getWeeklySummaryMessage(): Promise<string> {
+  const entries = await getWeekEntries();
 
   if (entries.length === 0) {
     return "No data from this past week yet. Log today's money first and we'll start building your summary 📊";
@@ -71,7 +158,10 @@ export function getWeeklySummaryMessage(): string {
   const totalProfit = totalRevenue - totalExpenses;
   const days = entries.length;
 
-  let msg = `📊 Here's your week at a glance (${days} day${days > 1 ? "s" : ""}):\n\n`;
+  const businessName = await getBusinessName();
+  const nameLabel = businessName ? ` for ${businessName}` : "";
+
+  let msg = `📊 Here's your week at a glance${nameLabel} (${days} day${days > 1 ? "s" : ""}):\n\n`;
   msg += `💰 Money earned: ${formatMoney(totalRevenue)}\n`;
   msg += `💸 Money spent: ${formatMoney(totalExpenses)}\n`;
   msg += `${totalProfit >= 0 ? "✅" : "🔴"} What you kept: ${formatMoney(totalProfit)}\n\n`;
@@ -84,5 +174,21 @@ export function getWeeklySummaryMessage(): string {
     msg += `This week was a tough one — you spent more than you earned. But you're tracking it, which means you can turn things around.\n\n💡 Look at the days where you spent the most. Was that spending necessary, or could it wait?`;
   }
 
+  return msg;
+}
+
+export async function getInventorySummaryMessage(): Promise<string> {
+  const items = await getInventory();
+
+  if (items.length === 0) {
+    return "You don't have any inventory tracked yet. Use \"Update stock\" to add your first item 📦";
+  }
+
+  let msg = "📦 Here's your current stock:\n\n";
+  for (const item of items) {
+    const warning = item.quantity <= 5 ? " ⚠️ Low!" : "";
+    msg += `• ${item.item_name}: ${item.quantity} ${item.unit}${warning}\n`;
+  }
+  msg += "\n💡 Keep an eye on items running low — restocking early saves you from lost sales.";
   return msg;
 }
