@@ -172,7 +172,7 @@ const Index = () => {
       return;
     }
 
-    // Idle state — detect intent
+    // Idle state, detect intent
     const lower = text.toLowerCase();
     if (lower.includes("log") || lower.includes("today") || lower.includes("record") || lower.includes("add money")) {
       handleQuickAction("log");
@@ -187,9 +187,6 @@ const Index = () => {
     } else {
       botReply("I can help you log money, show your weekly summary, update stock, or set your business name. Tap a button below or just tell me what you'd like to do.");
     }
-  };
-
-  // placeholder to keep diff clean
   };
 
   const handleQuickAction = (action: string) => {
