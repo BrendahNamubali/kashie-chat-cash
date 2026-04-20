@@ -62,8 +62,16 @@ export async function getBusinessName(): Promise<string | null> {
   return data?.business_name ?? null;
 }
 
+export async function getBusinessProfile(): Promise<{ business_name: string; contact: string | null } | null> {
+  const { data } = await supabase
+    .from("business_profiles")
+    .select("business_name, contact")
+    .limit(1)
+    .maybeSingle();
+  return data ?? null;
+}
+
 export async function saveBusinessName(name: string) {
-  // Upsert: check if one exists
   const { data: existing } = await supabase
     .from("business_profiles")
     .select("id")
@@ -74,6 +82,22 @@ export async function saveBusinessName(name: string) {
     await supabase.from("business_profiles").update({ business_name: name }).eq("id", existing.id);
   } else {
     await supabase.from("business_profiles").insert({ business_name: name });
+  }
+}
+
+export async function saveBusinessProfile(name: string, contact?: string) {
+  const { data: existing } = await supabase
+    .from("business_profiles")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+
+  const payload = { business_name: name, contact: contact?.trim() || null };
+
+  if (existing) {
+    await supabase.from("business_profiles").update(payload).eq("id", existing.id);
+  } else {
+    await supabase.from("business_profiles").insert(payload);
   }
 }
 
