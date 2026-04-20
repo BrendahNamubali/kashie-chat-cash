@@ -11,6 +11,7 @@ import {
   saveBusinessName,
   upsertInventoryItem,
   getInventorySummaryMessage,
+  getLowStockGreeting,
 } from "@/lib/finance";
 
 interface Message {
@@ -29,7 +30,7 @@ type ConversationState =
   | "awaiting_item_quantity"
   | "awaiting_item_unit";
 
-const WELCOME = `Hey there! 👋 I'm Kashie, your friendly finance buddy.\n\nI help you keep track of your daily business money — no complicated stuff, just clear and simple.\n\nTap a button below or type to get started.`;
+const WELCOME = `Hey there! 👋 I'm Kashie, your friendly finance buddy.\n\nI help you keep track of your daily business money, no complicated stuff, just clear and simple.\n\nTap a button below or type to get started.`;
 
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -51,12 +52,18 @@ const Index = () => {
     scrollToBottom();
   }, [messages, isTyping, scrollToBottom]);
 
-  // Greet with business name on load
+  // Greet with business name + low stock alerts on load
   useEffect(() => {
     (async () => {
-      const name = await getBusinessName();
+      const [name, lowStockMsg] = await Promise.all([
+        getBusinessName(),
+        getLowStockGreeting(),
+      ]);
       if (name) {
         addMessage(`Welcome back! Great to see ${name} doing business today 😊`, "bot");
+      }
+      if (lowStockMsg) {
+        setTimeout(() => addMessage(lowStockMsg, "bot"), 500);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +117,7 @@ const Index = () => {
       }
       setPendingRevenue(num);
       setState("awaiting_expenses");
-      botReply(`Got it — you made $${num.toLocaleString()} today! 💰\n\nStep 2 of 2: Now, how much did you spend today? (e.g. 200 or $350)`);
+      botReply(`Got it, you made $${num.toLocaleString()} today! 💰\n\nStep 2 of 2: Now, how much did you spend today? (e.g. 200 or $350)`);
       return;
     }
 
@@ -141,7 +148,7 @@ const Index = () => {
     if (state === "awaiting_item_name") {
       setPendingItemName(text);
       setState("awaiting_item_quantity");
-      botReply(`Got it — "${text}". How many do you have in stock right now?`);
+      botReply(`Got it, "${text}". How many do you have in stock right now?`);
       return;
     }
 
@@ -153,7 +160,7 @@ const Index = () => {
       }
       setPendingItemQty(num);
       setState("awaiting_item_unit");
-      botReply(`${num} of those — got it! What's the unit? (e.g. pieces, kg, boxes, liters)`);
+      botReply(`${num} of those, got it! What's the unit? (e.g. pieces, kg, boxes, liters)`);
       return;
     }
 
@@ -161,11 +168,11 @@ const Index = () => {
       const unit = text.toLowerCase();
       upsertInventoryItem({ item_name: pendingItemName, quantity: pendingItemQty, unit });
       setState("idle");
-      botReply(`Done! Updated "${pendingItemName}" → ${pendingItemQty} ${unit} 📦\n\n💡 I'll warn you when stock gets low. You can check anytime with "Update stock".`);
+      botReply(`Done! Updated "${pendingItemName}" to ${pendingItemQty} ${unit} 📦\n\n💡 I'll warn you when stock gets low. You can check anytime with "Update stock".`);
       return;
     }
 
-    // Idle state — detect intent
+    // Idle state, detect intent
     const lower = text.toLowerCase();
     if (lower.includes("log") || lower.includes("today") || lower.includes("record") || lower.includes("add money")) {
       handleQuickAction("log");
