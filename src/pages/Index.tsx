@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
 import QuickActions from "@/components/QuickActions";
 import TypingIndicator from "@/components/TypingIndicator";
+import ChatSidebar, { SidebarOpenButton } from "@/components/ChatSidebar";
 import {
   saveEntry,
   getProfitMessage,
@@ -42,7 +43,20 @@ const Index = () => {
   const [pendingItemName, setPendingItemName] = useState("");
   const [pendingItemQty, setPendingItemQty] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoGrow = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+  }, []);
+
+  useEffect(() => {
+    autoGrow();
+  }, [input, autoGrow]);
 
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -228,57 +242,94 @@ const Index = () => {
     return "Type a message...";
   };
 
+  const showEmptyState = messages.length === 1 && !isTyping;
+
   return (
-    <div className="flex flex-col h-screen max-w-lg mx-auto bg-background">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-primary text-primary-foreground shadow-md">
-        <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center text-lg font-bold">
-          K
+    <div className="flex h-screen w-full bg-background">
+      <ChatSidebar
+        open={sidebarOpen}
+        onToggle={() => setSidebarOpen((v) => !v)}
+        onNewChat={() => setSidebarOpen(false)}
+        history={[]}
+      />
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="flex items-center gap-2 px-3 py-2.5 border-b border-border">
+          {!sidebarOpen && <SidebarOpenButton onClick={() => setSidebarOpen(true)} />}
+          <h1 className="font-semibold text-sm text-foreground">Kashie</h1>
+          <span className="text-xs text-muted-foreground ml-1">
+            {isTyping ? "typing..." : "your finance friend"}
+          </span>
+        </header>
+
+        <div className="flex-1 overflow-y-auto scrollbar-thin">
+          <div className="max-w-3xl mx-auto w-full px-4 md:px-6 py-8">
+            {showEmptyState ? (
+              <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold mb-4">
+                  K
+                </div>
+                <h2 className="text-2xl font-semibold text-foreground mb-2">
+                  How can I help today?
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  I'm Kashie, your friendly finance buddy. Track daily money, stock, and your weekly summary in plain language.
+                </p>
+              </div>
+            ) : (
+              <>
+                {messages.map((msg) => (
+                  <ChatMessage
+                    key={msg.id}
+                    content={msg.content}
+                    sender={msg.sender}
+                    timestamp={msg.timestamp}
+                  />
+                ))}
+                {isTyping && <TypingIndicator />}
+              </>
+            )}
+            <div ref={bottomRef} />
+          </div>
         </div>
-        <div>
-          <h1 className="font-semibold text-base">Kashie</h1>
-          <p className="text-xs opacity-80">
-            {isTyping ? "typing..." : "Your finance friend"}
-          </p>
+
+        <div className="border-t border-border bg-background">
+          <div className="max-w-3xl mx-auto w-full px-4 md:px-6 py-4 space-y-3">
+            {state === "idle" && !isTyping && (
+              <QuickActions onAction={handleQuickAction} />
+            )}
+
+            <div className="relative flex items-end rounded-3xl border border-border bg-card shadow-sm focus-within:border-ring transition-colors">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder={getPlaceholder()}
+                disabled={isTyping}
+                rows={1}
+                className="flex-1 resize-none bg-transparent px-5 py-3.5 pr-12 text-[15px] text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50 max-h-[200px]"
+              />
+              <button
+                onClick={handleSend}
+                disabled={isTyping || !input.trim()}
+                className="absolute right-2 bottom-2 w-9 h-9 rounded-full bg-foreground text-background flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-30"
+                aria-label="Send message"
+              >
+                <ArrowUp className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-center text-muted-foreground">
+              Kashie can make mistakes. Double-check important numbers.
+            </p>
+          </div>
         </div>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-        {messages.map((msg) => (
-          <ChatMessage
-            key={msg.id}
-            content={msg.content}
-            sender={msg.sender}
-            timestamp={msg.timestamp}
-          />
-        ))}
-        {isTyping && <TypingIndicator />}
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Quick Actions */}
-      {state === "idle" && !isTyping && (
-        <QuickActions onAction={handleQuickAction} />
-      )}
-
-      {/* Input */}
-      <div className="flex items-center gap-2 px-4 py-3 border-t border-border bg-card">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder={getPlaceholder()}
-          disabled={isTyping}
-          className="flex-1 px-4 py-2.5 rounded-full bg-muted text-foreground text-sm placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-        />
-        <button
-          onClick={handleSend}
-          disabled={isTyping}
-          className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50"
-        >
-          <Send className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );
