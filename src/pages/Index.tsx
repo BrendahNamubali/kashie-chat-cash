@@ -135,10 +135,10 @@ const Index = () => {
   const showEmptyState = messages.length <= 1 && !isTyping;
 
   const examplePrompts = [
-    "I made 50k and spent 20k",
+    "I made 200k and spent 80k",
+    "I spent 50k",
     "Sold 3 items",
-    "Show my weekly summary",
-    "Add 10 bags of rice",
+    "How am I doing?",
   ];
 
   return (
