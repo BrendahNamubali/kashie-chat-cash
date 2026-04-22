@@ -57,23 +57,19 @@ const Index = () => {
     ]);
   }, []);
 
-  // Initial greeting using stored business name + low stock alert
+  // Show a low-stock alert ONCE, the first time the user sends a message.
+  // The visual welcome lives in the empty-state UI below, so we don't push
+  // any greeting message into the chat (prevents duplicate-render bug).
+  const lowStockShownRef = useRef(false);
   useEffect(() => {
+    if (lowStockShownRef.current) return;
+    if (messages.length === 0) return;
+    lowStockShownRef.current = true;
     (async () => {
-      const [name, lowStockMsg] = await Promise.all([
-        getBusinessName(),
-        getLowStockGreeting(),
-      ]);
-      const greeting = name
-        ? `Hey, welcome back to ${name}! 👋 What's on your mind today?`
-        : `Hey there! 👋 I'm Kashie, your friendly finance buddy.\n\nTell me about your day. Made some money? Spent some? Sold something? Just say it naturally.`;
-      addMessage(greeting, "bot");
-      if (lowStockMsg) {
-        setTimeout(() => addMessage(lowStockMsg, "bot"), 600);
-      }
+      const lowStockMsg = await getLowStockGreeting();
+      if (lowStockMsg) addMessage(lowStockMsg, "bot");
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [messages.length, addMessage]);
 
   const sendToAI = useCallback(
     async (userText: string) => {
