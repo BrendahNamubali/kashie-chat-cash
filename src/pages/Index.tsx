@@ -5,7 +5,7 @@ import QuickActions from "@/components/QuickActions";
 import TypingIndicator from "@/components/TypingIndicator";
 import ChatSidebar, { SidebarOpenButton } from "@/components/ChatSidebar";
 import { supabase } from "@/integrations/supabase/client";
-import { getBusinessName, getLowStockGreeting } from "@/lib/finance";
+import { getLowStockGreeting } from "@/lib/finance";
 import { toast } from "sonner";
 
 interface Message {
@@ -57,23 +57,19 @@ const Index = () => {
     ]);
   }, []);
 
-  // Initial greeting using stored business name + low stock alert
+  // Show a low-stock alert ONCE, the first time the user sends a message.
+  // The visual welcome lives in the empty-state UI below, so we don't push
+  // any greeting message into the chat (prevents duplicate-render bug).
+  const lowStockShownRef = useRef(false);
   useEffect(() => {
+    if (lowStockShownRef.current) return;
+    if (messages.length === 0) return;
+    lowStockShownRef.current = true;
     (async () => {
-      const [name, lowStockMsg] = await Promise.all([
-        getBusinessName(),
-        getLowStockGreeting(),
-      ]);
-      const greeting = name
-        ? `Hey, welcome back to ${name}! 👋 What's on your mind today?`
-        : `Hey there! 👋 I'm Kashie, your friendly finance buddy.\n\nTell me about your day. Made some money? Spent some? Sold something? Just say it naturally.`;
-      addMessage(greeting, "bot");
-      if (lowStockMsg) {
-        setTimeout(() => addMessage(lowStockMsg, "bot"), 600);
-      }
+      const lowStockMsg = await getLowStockGreeting();
+      if (lowStockMsg) addMessage(lowStockMsg, "bot");
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [messages.length, addMessage]);
 
   const sendToAI = useCallback(
     async (userText: string) => {
@@ -132,13 +128,12 @@ const Index = () => {
     void sendToAI(text);
   };
 
-  const showEmptyState = messages.length <= 1 && !isTyping;
+  const showEmptyState = messages.length === 0 && !isTyping;
 
   const examplePrompts = [
     "I made 200k and spent 80k",
     "I spent 50k",
     "Sold 3 items",
-    "How am I doing?",
   ];
 
   return (
@@ -162,40 +157,38 @@ const Index = () => {
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           <div className="max-w-2xl mx-auto w-full px-4 md:px-6">
-            {showEmptyState && messages.length === 0 ? (
+            {showEmptyState ? (
               <div className="flex flex-col items-center justify-center min-h-[60vh] text-center pt-12 pb-8">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center text-2xl font-semibold mb-5 shadow-lg shadow-primary/20">
                   K
                 </div>
-                <h2 className="text-2xl font-semibold text-foreground mb-2">
-                  Hey there! 👋 I'm Kashie
+                <h2 className="text-2xl font-semibold text-foreground mb-1.5">
+                  Hey 👋 welcome to Kashie
                 </h2>
-                <p className="text-sm text-muted-foreground max-w-sm mb-2">
-                  Your friendly money buddy. Tell me what happened today, sold, spent, made, and I'll keep score.
-                </p>
-                <p className="text-xs text-muted-foreground/80 max-w-sm mb-8">
-                  Ask me <span className="text-foreground/80 font-medium">"How am I doing?"</span> anytime for a quick read on your business.
+                <p className="text-sm text-muted-foreground mb-8">
+                  Let's track today's business 👇
                 </p>
 
-                <div className="w-full max-w-md space-y-2">
+                <div className="w-full max-w-sm rounded-2xl border border-border/70 bg-muted/30 p-5 text-left">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-                    Try one of these
+                    Try
                   </p>
-                  <div className="grid grid-cols-1 gap-2">
+                  <ul className="space-y-2.5">
                     {examplePrompts.map((prompt, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setInput(prompt);
-                          textareaRef.current?.focus();
-                        }}
-                        className="text-left px-4 py-3 rounded-xl border border-border bg-card/50 hover:bg-card hover:border-primary/40 hover:shadow-sm transition-all text-sm text-foreground/80 hover:text-foreground"
-                      >
-                        <span className="text-muted-foreground mr-2">→</span>
-                        {prompt}
-                      </button>
+                      <li key={idx}>
+                        <button
+                          onClick={() => {
+                            setInput(prompt);
+                            textareaRef.current?.focus();
+                          }}
+                          className="w-full text-left flex items-start gap-2 text-sm text-foreground/70 hover:text-foreground transition-colors group"
+                        >
+                          <span className="text-muted-foreground/60 group-hover:text-primary transition-colors mt-px">•</span>
+                          <span>{prompt}</span>
+                        </button>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               </div>
             ) : (
