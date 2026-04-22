@@ -134,6 +134,13 @@ const Index = () => {
 
   const showEmptyState = messages.length <= 1 && !isTyping;
 
+  const examplePrompts = [
+    "I made 50k and spent 20k",
+    "Sold 3 items",
+    "Show my weekly summary",
+    "Add 10 bags of rice",
+  ];
+
   return (
     <div className="flex h-screen w-full bg-background">
       <ChatSidebar
@@ -144,30 +151,51 @@ const Index = () => {
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex items-center gap-2 px-3 py-2.5 border-b border-border">
-          {!sidebarOpen && <SidebarOpenButton onClick={() => setSidebarOpen(true)} />}
+        <header className="flex items-center justify-center gap-2 px-4 py-3 border-b border-border/50">
+          {!sidebarOpen && (
+            <div className="absolute left-3">
+              <SidebarOpenButton onClick={() => setSidebarOpen(true)} />
+            </div>
+          )}
           <h1 className="font-semibold text-sm text-foreground">Kashie</h1>
-          <span className="text-xs text-muted-foreground ml-1">
-            {isTyping ? "thinking..." : "your finance friend"}
-          </span>
         </header>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
-          <div className="max-w-3xl mx-auto w-full px-4 md:px-6 py-8">
+          <div className="max-w-2xl mx-auto w-full px-4 md:px-6">
             {showEmptyState && messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-                <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold mb-4">
+              <div className="flex flex-col items-center justify-center min-h-[50vh] text-center pt-16">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center text-2xl font-semibold mb-5 shadow-lg shadow-primary/20">
                   K
                 </div>
                 <h2 className="text-2xl font-semibold text-foreground mb-2">
-                  How can I help today?
+                  Hey there! 👋
                 </h2>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Just tell me about your day in plain words. Like "made 200k and spent 80k" or "sold 3 bags of rice".
+                <p className="text-sm text-muted-foreground max-w-xs mb-8">
+                  I'm Kashie, your friendly finance buddy. Tell me about your day and I'll track everything for you.
                 </p>
+
+                <div className="w-full max-w-sm space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                    Try saying:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {examplePrompts.map((prompt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setInput(prompt);
+                          textareaRef.current?.focus();
+                        }}
+                        className="text-left px-4 py-3 rounded-xl border border-border bg-card/50 hover:bg-card hover:border-primary/30 transition-all text-sm text-foreground/80 hover:text-foreground"
+                      >
+                        "{prompt}"
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             ) : (
-              <>
+              <div className="py-8 space-y-1">
                 {messages.map((msg) => (
                   <ChatMessage
                     key={msg.id}
@@ -177,17 +205,15 @@ const Index = () => {
                   />
                 ))}
                 {isTyping && <TypingIndicator />}
-              </>
+              </div>
             )}
             <div ref={bottomRef} />
           </div>
         </div>
 
-        <div className="border-t border-border bg-background">
-          <div className="max-w-3xl mx-auto w-full px-4 md:px-6 py-4 space-y-3">
-            {!isTyping && <QuickActions onAction={handleQuickAction} />}
-
-            <div className="relative flex items-end rounded-3xl border border-border bg-card shadow-sm focus-within:border-ring transition-colors">
+        <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm">
+          <div className="max-w-2xl mx-auto w-full px-4 md:px-6 py-4">
+            <div className="relative flex items-end rounded-2xl border border-border bg-card shadow-sm focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -201,19 +227,19 @@ const Index = () => {
                 placeholder="Tell me about your day..."
                 disabled={isTyping}
                 rows={1}
-                className="flex-1 resize-none bg-transparent px-5 py-3.5 pr-12 text-[15px] text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50 max-h-[200px]"
+                className="flex-1 resize-none bg-transparent px-4 py-3.5 pr-12 text-[15px] text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50 max-h-[200px]"
               />
               <button
                 onClick={handleSend}
                 disabled={isTyping || !input.trim()}
-                className="absolute right-2 bottom-2 w-9 h-9 rounded-full bg-foreground text-background flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-30"
+                className="absolute right-2 bottom-2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-30 disabled:hover:bg-primary"
                 aria-label="Send message"
               >
                 <ArrowUp className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-[11px] text-center text-muted-foreground">
+            <p className="text-[11px] text-center text-muted-foreground mt-2">
               Kashie can make mistakes. Double-check important numbers.
             </p>
           </div>
