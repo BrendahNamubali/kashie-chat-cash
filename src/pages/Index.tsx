@@ -5,7 +5,7 @@ import QuickActions from "@/components/QuickActions";
 import TypingIndicator from "@/components/TypingIndicator";
 import ChatSidebar, { SidebarOpenButton } from "@/components/ChatSidebar";
 import { supabase } from "@/integrations/supabase/client";
-import { getLowStockGreeting } from "@/lib/finance";
+import { getLowStockGreeting, getTodayEntry, type DailyEntry } from "@/lib/finance";
 import { toast } from "sonner";
 
 interface Message {
@@ -23,6 +23,7 @@ const Index = () => {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [todayEntry, setTodayEntry] = useState<DailyEntry | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
