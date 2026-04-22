@@ -72,6 +72,12 @@ const Index = () => {
     })();
   }, [messages.length, addMessage]);
 
+  // Fetch today's snapshot. Refresh after each AI reply (in case it logged money).
+  useEffect(() => {
+    if (isTyping) return;
+    void getTodayEntry().then(setTodayEntry);
+  }, [isTyping, messages.length]);
+
   const sendToAI = useCallback(
     async (userText: string) => {
       const nextHistory: AiMsg[] = [...aiHistory, { role: "user", content: userText }];
@@ -211,29 +217,54 @@ const Index = () => {
 
         <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm">
           <div className="max-w-2xl mx-auto w-full px-4 md:px-6 py-4">
-            <div className="relative flex items-end rounded-2xl border border-border bg-card shadow-sm focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+            {showEmptyState && !todayEntry && (
+              <div className="mb-3 rounded-2xl border border-border/70 bg-muted/30 px-4 py-3.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                  Today's snapshot
+                </p>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Revenue</p>
+                    <p className="text-foreground/70 font-medium">—</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Expenses</p>
+                    <p className="text-foreground/70 font-medium">—</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Profit</p>
+                    <p className="text-foreground/70 font-medium">—</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  No activity yet 👀 let's fix that
+                </p>
+              </div>
+            )}
+
+            <div className="relative flex items-end rounded-2xl border border-border bg-card shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                     e.preventDefault();
                     handleSend();
                   }
                 }}
-                placeholder="Tell me about your day..."
+                placeholder="e.g. I made 50k and spent 20k"
                 disabled={isTyping}
                 rows={1}
-                className="flex-1 resize-none bg-transparent px-4 py-3.5 pr-12 text-[15px] text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50 max-h-[200px]"
+                className="flex-1 resize-none bg-transparent px-4 py-3.5 pr-14 text-[15px] text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50 max-h-[200px]"
               />
               <button
                 onClick={handleSend}
                 disabled={isTyping || !input.trim()}
-                className="absolute right-2 bottom-2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-30 disabled:hover:bg-primary"
+                className="absolute right-2 bottom-2 h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-md shadow-primary/30 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all disabled:opacity-40 disabled:shadow-none disabled:hover:bg-primary disabled:active:scale-100"
                 aria-label="Send message"
               >
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUp className="w-5 h-5" strokeWidth={2.5} />
               </button>
             </div>
 
