@@ -57,8 +57,10 @@ You: [call adjust_stock(...)] then: "Got it 👍 10 bags of rice in, 500k tied u
 User: "Sold 3 bags of rice"
 You: [call adjust_stock(item_name="rice", change=-3)] then: "Nice 👏 3 bags out the door. Stock's updated, want me to log the revenue too?"
 
-User: "How was my week?"
-You: [call get_weekly_summary] then react, summarize the trend in plain words, and drop ONE useful nudge.`;
+User: "How am I doing?" or "How's my week?" or "How's business?"
+You: [call get_performance_check] then react, mention the profit trend (up/down/steady), comment on expense behavior (rising/falling/steady), and end with ONE key insight. Example: "You've been profitable most days 👏 but expenses are creeping up about 15%, worth keeping an eye on before it eats into profit." Keep it to 2-4 sentences, never list raw numbers in tables.
+
+Use get_performance_check (not get_weekly_summary) for any general "how am I doing" style question. Use get_weekly_summary only when the user explicitly asks for totals or a summary breakdown.`;
 
 // ---- Tool definitions ----
 const tools = [
@@ -128,6 +130,15 @@ const tools = [
     function: {
       name: "get_weekly_summary",
       description: "Fetch the past 7 days of revenue, expenses, and profit totals.",
+      parameters: { type: "object", properties: {}, additionalProperties: false },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_performance_check",
+      description:
+        "Use this when the user asks 'how am I doing?', 'how's business?', 'how's my week?', or any general performance question. Returns recent vs prior period comparison, profit trend, expense behavior, and the single most important insight.",
       parameters: { type: "object", properties: {}, additionalProperties: false },
     },
   },
@@ -256,6 +267,90 @@ async function executeTool(
       total_expenses: totalExpenses,
       total_profit: totalRevenue - totalExpenses,
       entries,
+    };
+  }
+
+  if (name === "get_performance_check") {
+    // Pull last 14 days; compare last 7 vs previous 7
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(start.getDate() - 13);
+    const startStr = start.toISOString().split("T")[0];
+    const { data, error } = await supabase
+      .from("daily_entries")
+      .select("date, revenue, expenses, profit")
+      .gte("date", startStr)
+      .order("date", { ascending: true });
+    if (error) return { error: error.message };
+    const entries = data ?? [];
+
+    if (entries.length === 0) {
+      return {
+        days_logged: 0,
+        message:
+          "No entries logged yet. Suggest the user start by logging today's money.",
+      };
+    }
+
+    const todayStr = today.toISOString().split("T")[0];
+    const sevenAgo = new Date(today);
+    sevenAgo.setDate(sevenAgo.getDate() - 6);
+    const sevenAgoStr = sevenAgo.toISOString().split("T")[0];
+
+    const recent = entries.filter((e) => e.date >= sevenAgoStr);
+    const prior = entries.filter((e) => e.date < sevenAgoStr);
+
+    const sum = (arr: typeof entries, key: "revenue" | "expenses" | "profit") =>
+      arr.reduce((s, e) => s + Number(e[key] || 0), 0);
+
+    const recentRevenue = sum(recent, "revenue");
+    const recentExpenses = sum(recent, "expenses");
+    const recentProfit = sum(recent, "profit");
+    const priorRevenue = sum(prior, "revenue");
+    const priorExpenses = sum(prior, "expenses");
+    const priorProfit = sum(prior, "profit");
+
+    const profitableDays = recent.filter((e) => Number(e.profit) > 0).length;
+    const lossDays = recent.filter((e) => Number(e.profit) < 0).length;
+
+    const pctChange = (curr: number, prev: number) => {
+      if (prev === 0) return curr === 0 ? 0 : null;
+      return Math.round(((curr - prev) / Math.abs(prev)) * 100);
+    };
+
+    // Streak of profitable days from most recent backwards
+    const sortedDesc = [...recent].sort((a, b) => (a.date < b.date ? 1 : -1));
+    let profitStreak = 0;
+    for (const e of sortedDesc) {
+      if (Number(e.profit) > 0) profitStreak++;
+      else break;
+    }
+
+    return {
+      today: todayStr,
+      days_logged_recent: recent.length,
+      days_logged_prior: prior.length,
+      recent_7d: {
+        revenue: recentRevenue,
+        expenses: recentExpenses,
+        profit: recentProfit,
+        profitable_days: profitableDays,
+        loss_days: lossDays,
+        profit_streak: profitStreak,
+      },
+      prior_7d: {
+        revenue: priorRevenue,
+        expenses: priorExpenses,
+        profit: priorProfit,
+      },
+      trend: {
+        revenue_change_pct: pctChange(recentRevenue, priorRevenue),
+        expenses_change_pct: pctChange(recentExpenses, priorExpenses),
+        profit_change_pct: pctChange(recentProfit, priorProfit),
+      },
+      entries: recent,
+      guidance:
+        "Respond in 2-4 sentences. Reaction first, then summarize profit trend and expense behavior in plain words, then give ONE key insight or nudge. Do not list raw numbers in a table.",
     };
   }
 
