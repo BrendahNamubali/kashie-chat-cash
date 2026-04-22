@@ -134,6 +134,15 @@ const tools = [
   {
     type: "function",
     function: {
+      name: "get_performance_check",
+      description:
+        "Use this when the user asks 'how am I doing?', 'how's business?', 'how's my week?', or any general performance question. Returns recent vs prior period comparison, profit trend, expense behavior, and the single most important insight.",
+      parameters: { type: "object", properties: {}, additionalProperties: false },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "get_inventory",
       description: "Fetch the current stock list with quantities and low-stock flags.",
       parameters: { type: "object", properties: {}, additionalProperties: false },
