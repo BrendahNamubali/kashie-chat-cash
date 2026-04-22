@@ -163,22 +163,25 @@ const Index = () => {
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           <div className="max-w-2xl mx-auto w-full px-4 md:px-6">
             {showEmptyState && messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[50vh] text-center pt-16">
+              <div className="flex flex-col items-center justify-center min-h-[60vh] text-center pt-12 pb-8">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center text-2xl font-semibold mb-5 shadow-lg shadow-primary/20">
                   K
                 </div>
                 <h2 className="text-2xl font-semibold text-foreground mb-2">
-                  Hey there! 👋
+                  Hey there! 👋 I'm Kashie
                 </h2>
-                <p className="text-sm text-muted-foreground max-w-xs mb-8">
-                  I'm Kashie, your friendly finance buddy. Tell me about your day and I'll track everything for you.
+                <p className="text-sm text-muted-foreground max-w-sm mb-2">
+                  Your friendly money buddy. Tell me what happened today, sold, spent, made, and I'll keep score.
+                </p>
+                <p className="text-xs text-muted-foreground/80 max-w-sm mb-8">
+                  Ask me <span className="text-foreground/80 font-medium">"How am I doing?"</span> anytime for a quick read on your business.
                 </p>
 
-                <div className="w-full max-w-sm space-y-2">
+                <div className="w-full max-w-md space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-                    Try saying:
+                    Try one of these
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2">
                     {examplePrompts.map((prompt, idx) => (
                       <button
                         key={idx}
@@ -186,9 +189,10 @@ const Index = () => {
                           setInput(prompt);
                           textareaRef.current?.focus();
                         }}
-                        className="text-left px-4 py-3 rounded-xl border border-border bg-card/50 hover:bg-card hover:border-primary/30 transition-all text-sm text-foreground/80 hover:text-foreground"
+                        className="text-left px-4 py-3 rounded-xl border border-border bg-card/50 hover:bg-card hover:border-primary/40 hover:shadow-sm transition-all text-sm text-foreground/80 hover:text-foreground"
                       >
-                        "{prompt}"
+                        <span className="text-muted-foreground mr-2">→</span>
+                        {prompt}
                       </button>
                     ))}
                   </div>
