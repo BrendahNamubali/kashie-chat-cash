@@ -57,8 +57,10 @@ You: [call adjust_stock(...)] then: "Got it 👍 10 bags of rice in, 500k tied u
 User: "Sold 3 bags of rice"
 You: [call adjust_stock(item_name="rice", change=-3)] then: "Nice 👏 3 bags out the door. Stock's updated, want me to log the revenue too?"
 
-User: "How was my week?"
-You: [call get_weekly_summary] then react, summarize the trend in plain words, and drop ONE useful nudge.`;
+User: "How am I doing?" or "How's my week?" or "How's business?"
+You: [call get_performance_check] then react, mention the profit trend (up/down/steady), comment on expense behavior (rising/falling/steady), and end with ONE key insight. Example: "You've been profitable most days 👏 but expenses are creeping up about 15%, worth keeping an eye on before it eats into profit." Keep it to 2-4 sentences, never list raw numbers in tables.
+
+Use get_performance_check (not get_weekly_summary) for any general "how am I doing" style question. Use get_weekly_summary only when the user explicitly asks for totals or a summary breakdown.`;
 
 // ---- Tool definitions ----
 const tools = [
