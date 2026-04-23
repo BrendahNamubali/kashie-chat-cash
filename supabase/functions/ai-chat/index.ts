@@ -265,6 +265,7 @@ async function executeTool(
     const { data, error } = await supabase
       .from("daily_entries")
       .select("date, revenue, expenses, profit")
+      .eq("user_id", userId)
       .gte("date", weekAgo.toISOString().split("T")[0])
       .order("date", { ascending: true });
     if (error) return { error: error.message };
@@ -281,7 +282,6 @@ async function executeTool(
   }
 
   if (name === "get_performance_check") {
-    // Pull last 14 days; compare last 7 vs previous 7
     const today = new Date();
     const start = new Date(today);
     start.setDate(start.getDate() - 13);
@@ -289,6 +289,7 @@ async function executeTool(
     const { data, error } = await supabase
       .from("daily_entries")
       .select("date, revenue, expenses, profit")
+      .eq("user_id", userId)
       .gte("date", startStr)
       .order("date", { ascending: true });
     if (error) return { error: error.message };
@@ -328,7 +329,6 @@ async function executeTool(
       return Math.round(((curr - prev) / Math.abs(prev)) * 100);
     };
 
-    // Streak of profitable days from most recent backwards
     const sortedDesc = [...recent].sort((a, b) => (a.date < b.date ? 1 : -1));
     let profitStreak = 0;
     for (const e of sortedDesc) {
@@ -368,6 +368,7 @@ async function executeTool(
     const { data, error } = await supabase
       .from("inventory_items")
       .select("item_name, quantity, unit, unit_price")
+      .eq("user_id", userId)
       .order("item_name");
     if (error) return { error: error.message };
     const items = data ?? [];
@@ -378,21 +379,13 @@ async function executeTool(
   }
 
   if (name === "set_business_name") {
-    const name = String(args.name).trim();
-    const { data: existing } = await supabase
-      .from("business_profiles")
-      .select("id")
-      .limit(1)
-      .maybeSingle();
-    if (existing) {
-      await supabase
-        .from("business_profiles")
-        .update({ business_name: name })
-        .eq("id", existing.id);
-    } else {
-      await supabase.from("business_profiles").insert({ business_name: name });
-    }
-    return { ok: true, name };
+    const newName = String(args.name).trim();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ business_name: newName })
+      .eq("user_id", userId);
+    if (error) return { error: error.message };
+    return { ok: true, name: newName };
   }
 
   return { error: `Unknown tool: ${name}` };
@@ -417,9 +410,28 @@ Deno.serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    // Identify the calling user from the JWT (verify_jwt is enabled in config.toml)
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const jwt = authHeader.replace(/^Bearer\s+/i, "");
+    if (!jwt) {
+      return new Response(JSON.stringify({ error: "Not authenticated" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: userData, error: userErr } = await adminClient.auth.getUser(jwt);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Invalid session" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = userData.user.id;
 
-    // Conversation loop with tool calls (max 4 iterations)
+    // Use service-role client for tool execution; we scope every query by userId explicitly.
+    const supabase = adminClient;
+
     const conversation: Array<Record<string, unknown>> = [
       { role: "system", content: SYSTEM_PROMPT },
       ...messages,
@@ -482,10 +494,8 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Add the assistant message with tool calls
       conversation.push(msg);
 
-      // Execute each tool call and append results
       for (const tc of toolCalls) {
         let args: Record<string, unknown> = {};
         try {
@@ -493,7 +503,7 @@ Deno.serve(async (req) => {
         } catch {
           args = {};
         }
-        const result = await executeTool(supabase, tc.function.name, args);
+        const result = await executeTool(supabase, userId, tc.function.name, args);
         conversation.push({
           role: "tool",
           tool_call_id: tc.id,
