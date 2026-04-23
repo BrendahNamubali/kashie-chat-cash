@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, LogOut } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
-import QuickActions from "@/components/QuickActions";
 import TypingIndicator from "@/components/TypingIndicator";
 import ChatSidebar, { SidebarOpenButton } from "@/components/ChatSidebar";
 import { supabase } from "@/integrations/supabase/client";
-import { getLowStockGreeting, getTodayEntry, type DailyEntry } from "@/lib/finance";
+import { getLowStockGreeting, getTodayEntry, getProfile, type DailyEntry, type Profile } from "@/lib/finance";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 interface Message {
@@ -17,13 +17,20 @@ interface Message {
 
 type AiMsg = { role: "user" | "assistant"; content: string };
 
+const firstName = (full?: string | null) => {
+  if (!full) return null;
+  return full.trim().split(/\s+/)[0] || null;
+};
+
 const Index = () => {
+  const { signOut } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiHistory, setAiHistory] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [todayEntry, setTodayEntry] = useState<DailyEntry | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,6 +53,11 @@ const Index = () => {
     scrollToBottom();
   }, [messages, isTyping, scrollToBottom]);
 
+  // Load profile once
+  useEffect(() => {
+    void getProfile().then(setProfile);
+  }, []);
+
   const addMessage = useCallback((content: string, sender: "user" | "bot") => {
     setMessages((prev) => [
       ...prev,
@@ -58,9 +70,6 @@ const Index = () => {
     ]);
   }, []);
 
-  // Show a low-stock alert ONCE, the first time the user sends a message.
-  // The visual welcome lives in the empty-state UI below, so we don't push
-  // any greeting message into the chat (prevents duplicate-render bug).
   const lowStockShownRef = useRef(false);
   useEffect(() => {
     if (lowStockShownRef.current) return;
@@ -72,7 +81,6 @@ const Index = () => {
     })();
   }, [messages.length, addMessage]);
 
-  // Fetch today's snapshot. Refresh after each AI reply (in case it logged money).
   useEffect(() => {
     if (isTyping) return;
     void getTodayEntry().then(setTodayEntry);
@@ -87,7 +95,6 @@ const Index = () => {
           body: { messages: nextHistory },
         });
         if (error) {
-          // supabase.functions.invoke surfaces non-2xx as error
           const msg = error.message || "Something went wrong.";
           if (msg.includes("429")) {
             toast.error("Too many requests, give it a sec and try again.");
@@ -121,20 +128,6 @@ const Index = () => {
     void sendToAI(text);
   };
 
-  const handleQuickAction = (action: string) => {
-    if (isTyping) return;
-    const map: Record<string, string> = {
-      log: "I want to log today's money.",
-      summary: "Show me my weekly summary.",
-      inventory: "Show me my current stock.",
-      business_name: "I want to set or change my business name.",
-    };
-    const text = map[action];
-    if (!text) return;
-    addMessage(text, "user");
-    void sendToAI(text);
-  };
-
   const showEmptyState = messages.length === 0 && !isTyping;
 
   const examplePrompts = [
@@ -143,23 +136,51 @@ const Index = () => {
     "Sold 3 items",
   ];
 
+  const name = firstName(profile?.full_name);
+  const business = profile?.business_name;
+
+  // Greeting line for empty state
+  const greetingTitle = name
+    ? `Hey ${name} 👋 welcome back`
+    : "Hey 👋 welcome to Kashie";
+  const greetingSub = business
+    ? `Let's track today at ${business} 👇`
+    : "Let's track today's business 👇";
+
   return (
     <div className="flex h-screen w-full bg-background">
       <ChatSidebar
         open={sidebarOpen}
         onToggle={() => setSidebarOpen((v) => !v)}
         onNewChat={() => setSidebarOpen(false)}
+        onSignOut={signOut}
+        profile={profile}
         history={[]}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex items-center justify-center gap-2 px-4 py-3 border-b border-border/50">
+        <header className="relative flex items-center justify-center gap-2 px-4 py-3 border-b border-border/50">
           {!sidebarOpen && (
             <div className="absolute left-3">
               <SidebarOpenButton onClick={() => setSidebarOpen(true)} />
             </div>
           )}
-          <h1 className="font-semibold text-sm text-foreground">Kashie</h1>
+          <div className="flex flex-col items-center leading-tight">
+            <h1 className="font-semibold text-sm text-foreground">
+              {business ?? "Kashie"}
+            </h1>
+            {business && (
+              <span className="text-[10px] text-muted-foreground">Kashie</span>
+            )}
+          </div>
+          <button
+            onClick={signOut}
+            className="absolute right-3 p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </header>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
@@ -170,10 +191,10 @@ const Index = () => {
                   K
                 </div>
                 <h2 className="text-2xl font-semibold text-foreground mb-1.5">
-                  Hey 👋 welcome to Kashie
+                  {greetingTitle}
                 </h2>
                 <p className="text-sm text-muted-foreground mb-8">
-                  Let's track today's business 👇
+                  {greetingSub}
                 </p>
 
                 <div className="w-full max-w-sm rounded-2xl border border-border/70 bg-muted/30 p-5 text-left">
@@ -248,7 +269,6 @@ const Index = () => {
                   if (isTyping) return;
                   setInput("I made ___ and spent ___");
                   textareaRef.current?.focus();
-                  // Place cursor at first blank
                   requestAnimationFrame(() => {
                     const el = textareaRef.current;
                     if (!el) return;
