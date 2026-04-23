@@ -242,6 +242,28 @@ const Index = () => {
               </div>
             )}
 
+            {showEmptyState && (
+              <button
+                onClick={() => {
+                  if (isTyping) return;
+                  setInput("I made ___ and spent ___");
+                  textareaRef.current?.focus();
+                  // Place cursor at first blank
+                  requestAnimationFrame(() => {
+                    const el = textareaRef.current;
+                    if (!el) return;
+                    const pos = "I made ".length;
+                    el.setSelectionRange(pos, pos + 3);
+                  });
+                }}
+                disabled={isTyping}
+                className="mb-3 w-full flex items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground py-3.5 text-sm font-medium shadow-md shadow-primary/30 hover:bg-primary/90 hover:shadow-primary/40 active:scale-[0.99] transition-all disabled:opacity-50"
+              >
+                <span className="text-base">💰</span>
+                Log today's money
+              </button>
+            )}
+
             <div className="relative flex items-end rounded-2xl border border-border bg-card shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
               <textarea
                 ref={textareaRef}
