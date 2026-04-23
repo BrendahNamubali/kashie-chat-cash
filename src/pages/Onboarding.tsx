@@ -1,50 +1,65 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { getBusinessProfile, saveBusinessProfile } from "@/lib/finance";
-
-const ONBOARDED_KEY = "kashie_onboarded";
+import { getProfile, updateProfile } from "@/lib/finance";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const { user, loading: authLoading } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [contact, setContact] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate("/auth", { replace: true });
+      return;
+    }
     (async () => {
-      const done = localStorage.getItem(ONBOARDED_KEY);
-      if (done) {
+      const profile = await getProfile();
+      if (profile?.onboarding_completed) {
         navigate("/chat", { replace: true });
         return;
       }
-      const profile = await getBusinessProfile();
-      if (profile?.business_name) {
-        localStorage.setItem(ONBOARDED_KEY, "1");
-        navigate("/chat", { replace: true });
-        return;
-      }
+      // Pre-fill if data already exists from signup metadata
+      if (profile?.full_name) setFullName(profile.full_name);
+      if (profile?.business_name) setBusinessName(profile.business_name);
+      if (profile?.contact) setContact(profile.contact);
       setChecking(false);
     })();
-  }, [navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed || loading) return;
+    const fn = fullName.trim();
+    const bn = businessName.trim();
+    if (!fn || !bn || loading) return;
     setLoading(true);
-    await saveBusinessProfile(trimmed, contact);
-    localStorage.setItem(ONBOARDED_KEY, "1");
+    const { error } = await updateProfile({
+      full_name: fn,
+      business_name: bn,
+      contact: contact.trim() || null,
+      onboarding_completed: true,
+    });
+    if (error) {
+      toast.error("Couldn't save that. Try again?");
+      setLoading(false);
+      return;
+    }
     navigate("/chat", { replace: true });
   };
 
-  if (checking) {
+  if (authLoading || checking) {
     return <div className="min-h-screen bg-background" />;
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-semibold mb-4">
@@ -54,23 +69,40 @@ const Onboarding = () => {
             Welcome to Kashie 👋
           </h1>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Your friendly finance buddy. Let's get to know you so we can keep things personal.
+            A few quick details so we can keep things personal.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor="name" className="text-sm font-medium text-foreground">
-              Your name or business name
+            <label htmlFor="fullName" className="text-sm font-medium text-foreground">
+              Your name
             </label>
             <input
-              id="name"
+              id="fullName"
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Maria's Bakery"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="e.g. Bree"
               autoFocus
               required
+              maxLength={100}
+              className="w-full h-11 px-4 rounded-xl border border-border bg-card text-[15px] text-foreground placeholder:text-muted-foreground outline-none focus:border-ring transition-colors"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="businessName" className="text-sm font-medium text-foreground">
+              Business name
+            </label>
+            <input
+              id="businessName"
+              type="text"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              placeholder="e.g. Bree's Bakery"
+              required
+              maxLength={100}
               className="w-full h-11 px-4 rounded-xl border border-border bg-card text-[15px] text-foreground placeholder:text-muted-foreground outline-none focus:border-ring transition-colors"
             />
           </div>
@@ -84,24 +116,21 @@ const Onboarding = () => {
               type="text"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
-              placeholder="e.g. maria@email.com"
+              placeholder="e.g. +1 555 0100"
+              maxLength={100}
               className="w-full h-11 px-4 rounded-xl border border-border bg-card text-[15px] text-foreground placeholder:text-muted-foreground outline-none focus:border-ring transition-colors"
             />
           </div>
 
           <button
             type="submit"
-            disabled={!name.trim() || loading}
-            className="w-full h-11 rounded-xl bg-foreground text-background flex items-center justify-center gap-2 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+            disabled={!fullName.trim() || !businessName.trim() || loading}
+            className="w-full h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center gap-2 text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
           >
             {loading ? "Setting up..." : "Continue"}
             {!loading && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
-
-        <p className="text-[11px] text-center text-muted-foreground mt-6">
-          No password needed. We just want to greet you properly.
-        </p>
       </div>
     </div>
   );
