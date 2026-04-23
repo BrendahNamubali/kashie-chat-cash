@@ -1,16 +1,23 @@
-import { MessageSquarePlus, PanelLeftClose, PanelLeft } from "lucide-react";
+import { MessageSquarePlus, PanelLeftClose, PanelLeft, LogOut } from "lucide-react";
+import type { Profile } from "@/lib/finance";
 
 interface ChatSidebarProps {
   open: boolean;
   onToggle: () => void;
   onNewChat: () => void;
+  onSignOut?: () => void;
+  profile?: Profile | null;
   history: { id: string; title: string }[];
 }
 
-const ChatSidebar = ({ open, onToggle, onNewChat, history }: ChatSidebarProps) => {
+const ChatSidebar = ({ open, onToggle, onNewChat, onSignOut, profile, history }: ChatSidebarProps) => {
+  const initial =
+    profile?.business_name?.trim()?.charAt(0)?.toUpperCase() ??
+    profile?.full_name?.trim()?.charAt(0)?.toUpperCase() ??
+    "K";
+
   return (
     <>
-      {/* Mobile backdrop */}
       {open && (
         <button
           aria-label="Close sidebar"
@@ -63,6 +70,36 @@ const ChatSidebar = ({ open, onToggle, onNewChat, history }: ChatSidebarProps) =
             </ul>
           )}
         </div>
+
+        {(profile || onSignOut) && (
+          <div className="p-2 border-t border-sidebar-border">
+            <div className="flex items-center gap-2 px-2 py-2">
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                {initial}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  {profile?.business_name ?? profile?.full_name ?? "Kashie"}
+                </p>
+                {profile?.full_name && profile?.business_name && (
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {profile.full_name}
+                  </p>
+                )}
+              </div>
+              {onSignOut && (
+                <button
+                  onClick={onSignOut}
+                  className="p-1.5 rounded-md hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-foreground"
+                  aria-label="Sign out"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </aside>
     </>
   );

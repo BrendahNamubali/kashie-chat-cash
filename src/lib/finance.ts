@@ -14,16 +14,37 @@ export interface InventoryItem {
   unit: string;
 }
 
+export interface Profile {
+  full_name: string | null;
+  business_name: string | null;
+  contact: string | null;
+  onboarding_completed: boolean;
+}
+
 export const LOW_STOCK_THRESHOLD = 5;
 
-// ---- Database helpers ----
+// ---- Auth helper ----
+async function requireUserId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id ?? null;
+}
+
+// ---- Daily entries ----
 
 export async function saveEntry(entry: DailyEntry) {
+  const userId = await requireUserId();
+  if (!userId) return;
   const { error } = await supabase
     .from("daily_entries")
     .upsert(
-      { date: entry.date, revenue: entry.revenue, expenses: entry.expenses, profit: entry.profit },
-      { onConflict: "date" }
+      {
+        user_id: userId,
+        date: entry.date,
+        revenue: entry.revenue,
+        expenses: entry.expenses,
+        profit: entry.profit,
+      },
+      { onConflict: "user_id,date" },
     );
   if (error) console.error("Failed to save entry:", error);
 }
@@ -62,54 +83,35 @@ export async function getWeekEntries(): Promise<DailyEntry[]> {
   return data ?? [];
 }
 
-// ---- Business profile ----
+// ---- Profile (per-user) ----
 
-export async function getBusinessName(): Promise<string | null> {
+export async function getProfile(): Promise<Profile | null> {
   const { data } = await supabase
-    .from("business_profiles")
-    .select("business_name")
-    .limit(1)
-    .maybeSingle();
-  return data?.business_name ?? null;
-}
-
-export async function getBusinessProfile(): Promise<{ business_name: string; contact: string | null } | null> {
-  const { data } = await supabase
-    .from("business_profiles")
-    .select("business_name, contact")
-    .limit(1)
+    .from("profiles")
+    .select("full_name, business_name, contact, onboarding_completed")
     .maybeSingle();
   return data ?? null;
 }
 
-export async function saveBusinessName(name: string) {
-  const { data: existing } = await supabase
-    .from("business_profiles")
-    .select("id")
-    .limit(1)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase.from("business_profiles").update({ business_name: name }).eq("id", existing.id);
-  } else {
-    await supabase.from("business_profiles").insert({ business_name: name });
-  }
+export async function updateProfile(updates: {
+  full_name?: string;
+  business_name?: string;
+  contact?: string | null;
+  onboarding_completed?: boolean;
+}) {
+  const userId = await requireUserId();
+  if (!userId) return { error: "Not signed in" };
+  const { error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("user_id", userId);
+  if (error) console.error("Failed to update profile:", error);
+  return { error };
 }
 
-export async function saveBusinessProfile(name: string, contact?: string) {
-  const { data: existing } = await supabase
-    .from("business_profiles")
-    .select("id")
-    .limit(1)
-    .maybeSingle();
-
-  const payload = { business_name: name, contact: contact?.trim() || null };
-
-  if (existing) {
-    await supabase.from("business_profiles").update(payload).eq("id", existing.id);
-  } else {
-    await supabase.from("business_profiles").insert(payload);
-  }
+export async function getBusinessName(): Promise<string | null> {
+  const profile = await getProfile();
+  return profile?.business_name ?? null;
 }
 
 // ---- Inventory ----
@@ -141,12 +143,13 @@ export async function getLowStockGreeting(): Promise<string | null> {
 }
 
 export async function upsertInventoryItem(item: InventoryItem) {
+  const userId = await requireUserId();
+  if (!userId) return;
   if (item.id) {
     await supabase.from("inventory_items").update({
       item_name: item.item_name, quantity: item.quantity, unit: item.unit,
     }).eq("id", item.id);
   } else {
-    // Check if item with same name exists
     const { data: existing } = await supabase
       .from("inventory_items")
       .select("id")
@@ -159,7 +162,10 @@ export async function upsertInventoryItem(item: InventoryItem) {
       }).eq("id", existing.id);
     } else {
       await supabase.from("inventory_items").insert({
-        item_name: item.item_name, quantity: item.quantity, unit: item.unit,
+        user_id: userId,
+        item_name: item.item_name,
+        quantity: item.quantity,
+        unit: item.unit,
       });
     }
   }
