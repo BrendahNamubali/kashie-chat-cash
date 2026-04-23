@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           id: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           business_name: string
@@ -28,6 +29,7 @@ export type Database = {
           created_at?: string
           id?: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           business_name?: string
@@ -35,6 +37,7 @@ export type Database = {
           created_at?: string
           id?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -47,6 +50,7 @@ export type Database = {
           profit: number
           revenue: number
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -56,6 +60,7 @@ export type Database = {
           profit?: number
           revenue?: number
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -65,6 +70,7 @@ export type Database = {
           profit?: number
           revenue?: number
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -77,6 +83,7 @@ export type Database = {
           unit: string
           unit_price: number
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -86,6 +93,7 @@ export type Database = {
           unit?: string
           unit_price?: number
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -95,6 +103,40 @@ export type Database = {
           unit?: string
           unit_price?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          business_name: string | null
+          contact: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          onboarding_completed: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_name?: string | null
+          contact?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_name?: string | null
+          contact?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
