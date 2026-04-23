@@ -170,6 +170,7 @@ const tools = [
 // ---- Tool execution ----
 async function executeTool(
   supabase: ReturnType<typeof createClient>,
+  userId: string,
   name: string,
   args: Record<string, unknown>,
 ): Promise<unknown> {
@@ -180,7 +181,10 @@ async function executeTool(
     const date = new Date().toISOString().split("T")[0];
     const { error } = await supabase
       .from("daily_entries")
-      .upsert({ date, revenue, expenses, profit }, { onConflict: "date" });
+      .upsert(
+        { user_id: userId, date, revenue, expenses, profit },
+        { onConflict: "user_id,date" },
+      );
     if (error) return { error: error.message };
     return { ok: true, revenue, expenses, profit, date };
   }
@@ -191,6 +195,7 @@ async function executeTool(
     const { data: existing } = await supabase
       .from("inventory_items")
       .select("id, quantity, unit, unit_price")
+      .eq("user_id", userId)
       .ilike("item_name", itemName)
       .maybeSingle();
 
@@ -211,6 +216,7 @@ async function executeTool(
       return { error: `No item "${itemName}" found to remove from.` };
     }
     const { error } = await supabase.from("inventory_items").insert({
+      user_id: userId,
       item_name: itemName,
       quantity: change,
       unit: args.unit ? String(args.unit) : "units",
@@ -226,6 +232,7 @@ async function executeTool(
     const { data: existing } = await supabase
       .from("inventory_items")
       .select("id")
+      .eq("user_id", userId)
       .ilike("item_name", itemName)
       .maybeSingle();
 
@@ -241,6 +248,7 @@ async function executeTool(
       if (error) return { error: error.message };
     } else {
       const { error } = await supabase.from("inventory_items").insert({
+        user_id: userId,
         item_name: itemName,
         quantity,
         unit: args.unit ? String(args.unit) : "units",
