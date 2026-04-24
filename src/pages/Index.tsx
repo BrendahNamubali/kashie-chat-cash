@@ -171,6 +171,7 @@ const Index = () => {
     void sendToAI(text);
   };
 
+  const showEmptyState = messages.length === 0 && !isTyping;
 
   const examplePrompts = [
     "I made 200k and spent 80k",
