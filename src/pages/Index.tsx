@@ -264,6 +264,48 @@ const Index = () => {
 
         <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm">
           <div className="max-w-2xl mx-auto w-full px-4 md:px-6 py-4">
+            {/* Today's status indicator */}
+            <div className="mb-2 flex items-center px-1">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground/80">Today's status:</span>{" "}
+                {todayEntry ? (
+                  todayEntry.profit > 0 ? (
+                    <span className="text-foreground/80">Profit {compactMoney(todayEntry.profit)} 👏</span>
+                  ) : todayEntry.profit < 0 ? (
+                    <span className="text-foreground/80">Loss {compactMoney(Math.abs(todayEntry.profit))} 📉</span>
+                  ) : (
+                    <span className="text-foreground/80">Broke even 👍</span>
+                  )
+                ) : (
+                  <span>Not logged yet 👀</span>
+                )}
+              </p>
+            </div>
+
+            {/* Recent activity — last 5 logs */}
+            {recentEntries.length > 0 && (
+              <div className="mb-3 rounded-2xl border border-border/70 bg-muted/20 px-4 py-3">
+                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                  Recent activity
+                </p>
+                <ul className="space-y-1">
+                  {recentEntries.slice(0, 5).map((e) => (
+                    <li
+                      key={e.date}
+                      className="flex items-center justify-between text-xs text-foreground/70"
+                    >
+                      <span className="text-muted-foreground">{labelForDate(e.date)}:</span>
+                      <span className="tabular-nums">
+                        <span className="text-emerald-500">+{compactMoney(e.revenue)}</span>
+                        <span className="text-muted-foreground/60 mx-1.5">·</span>
+                        <span className="text-rose-500">-{compactMoney(e.expenses)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {showEmptyState && !todayEntry && (
               <div className="mb-3 rounded-2xl border border-border/70 bg-muted/30 px-4 py-3.5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
