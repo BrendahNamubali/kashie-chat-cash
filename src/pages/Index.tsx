@@ -4,7 +4,7 @@ import ChatMessage from "@/components/ChatMessage";
 import TypingIndicator from "@/components/TypingIndicator";
 import ChatSidebar, { SidebarOpenButton } from "@/components/ChatSidebar";
 import { supabase } from "@/integrations/supabase/client";
-import { getLowStockGreeting, getTodayEntry, getProfile, type DailyEntry, type Profile } from "@/lib/finance";
+import { getLowStockGreeting, getTodayEntry, getProfile, getRecentEntries, type DailyEntry, type Profile } from "@/lib/finance";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
