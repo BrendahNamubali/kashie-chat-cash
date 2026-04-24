@@ -48,6 +48,7 @@ export type Database = {
           expenses: number
           id: string
           profit: number
+          raw_input: string | null
           revenue: number
           updated_at: string
           user_id: string
@@ -58,6 +59,7 @@ export type Database = {
           expenses?: number
           id?: string
           profit?: number
+          raw_input?: string | null
           revenue?: number
           updated_at?: string
           user_id: string
@@ -68,6 +70,7 @@ export type Database = {
           expenses?: number
           id?: string
           profit?: number
+          raw_input?: string | null
           revenue?: number
           updated_at?: string
           user_id?: string
