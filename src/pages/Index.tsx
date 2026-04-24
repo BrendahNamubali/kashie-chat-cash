@@ -22,6 +22,30 @@ const firstName = (full?: string | null) => {
   return full.trim().split(/\s+/)[0] || null;
 };
 
+// Compact money: 200000 -> "200k", 1500000 -> "1.5m"
+const compactMoney = (n: number): string => {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) {
+    const v = n / 1_000_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(1)}m`;
+  }
+  if (abs >= 1_000) {
+    const v = n / 1_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(1)}k`;
+  }
+  return `${n}`;
+};
+
+const labelForDate = (dateStr: string): string => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr + "T00:00:00");
+  const diffDays = Math.round((today.getTime() - d.getTime()) / 86400000);
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+};
+
 const Index = () => {
   const { signOut } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
