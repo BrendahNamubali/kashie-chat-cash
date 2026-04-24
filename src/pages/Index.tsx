@@ -244,6 +244,35 @@ const Index = () => {
                     ))}
                   </ul>
                 </div>
+
+                {/* Quick action pills */}
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2 max-w-md">
+                  <button
+                    type="button"
+                    onClick={() => prefillInput("I made ___ and spent ___", "I made ".length, 3)}
+                    disabled={isTyping}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card hover:bg-accent hover:border-border px-3.5 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <span>💰</span> Log today's money
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => prefillInput("I added ___ items to stock", "I added ".length, 3)}
+                    disabled={isTyping}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card hover:bg-accent hover:border-border px-3.5 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <span>📦</span> Log today's stock
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => sendQuickAction("How am I doing this week?")}
+                    disabled={isTyping}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card hover:bg-accent hover:border-border px-3.5 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <span>📊</span> View summary
+                  </button>
+                </div>
+
               </div>
             ) : (
               <div className="py-8 space-y-1">
