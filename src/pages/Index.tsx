@@ -154,6 +154,23 @@ const Index = () => {
     void sendToAI(text);
   };
 
+  const prefillInput = (template: string, selectionStart: number, selectionLength: number) => {
+    if (isTyping) return;
+    setInput(template);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(selectionStart, selectionStart + selectionLength);
+    });
+  };
+
+  const sendQuickAction = (text: string) => {
+    if (isTyping) return;
+    addMessage(text, "user");
+    void sendToAI(text);
+  };
+
   const showEmptyState = messages.length === 0 && !isTyping;
 
   const examplePrompts = [
@@ -244,6 +261,35 @@ const Index = () => {
                     ))}
                   </ul>
                 </div>
+
+                {/* Quick action pills */}
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2 max-w-md">
+                  <button
+                    type="button"
+                    onClick={() => prefillInput("I made ___ and spent ___", "I made ".length, 3)}
+                    disabled={isTyping}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card hover:bg-accent hover:border-border px-3.5 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <span>💰</span> Log today's money
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => prefillInput("I added ___ items to stock", "I added ".length, 3)}
+                    disabled={isTyping}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card hover:bg-accent hover:border-border px-3.5 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <span>📦</span> Log today's stock
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => sendQuickAction("How am I doing this week?")}
+                    disabled={isTyping}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card hover:bg-accent hover:border-border px-3.5 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <span>📊</span> View summary
+                  </button>
+                </div>
+
               </div>
             ) : (
               <div className="py-8 space-y-1">
@@ -331,26 +377,6 @@ const Index = () => {
               </div>
             )}
 
-            {showEmptyState && (
-              <button
-                onClick={() => {
-                  if (isTyping) return;
-                  setInput("I made ___ and spent ___");
-                  textareaRef.current?.focus();
-                  requestAnimationFrame(() => {
-                    const el = textareaRef.current;
-                    if (!el) return;
-                    const pos = "I made ".length;
-                    el.setSelectionRange(pos, pos + 3);
-                  });
-                }}
-                disabled={isTyping}
-                className="mb-3 w-full flex items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground py-3.5 text-sm font-medium shadow-md shadow-primary/30 hover:bg-primary/90 hover:shadow-primary/40 active:scale-[0.99] transition-all disabled:opacity-50"
-              >
-                <span className="text-base">💰</span>
-                Log today's money
-              </button>
-            )}
 
             <div className="relative flex items-end rounded-2xl border border-border bg-card shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
               <textarea
