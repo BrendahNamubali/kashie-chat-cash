@@ -455,8 +455,13 @@ Deno.serve(async (req) => {
     // Use service-role client for tool execution; we scope every query by userId explicitly.
     const supabase = adminClient;
 
+    // Pre-fetch the user's recent financial context so the AI always has it,
+    // even before deciding to call a tool.
+    const financialContext = await buildFinancialContext(supabase, userId);
+
     const conversation: Array<Record<string, unknown>> = [
       { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: financialContext },
       ...messages,
     ];
 
