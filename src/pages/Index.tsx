@@ -154,7 +154,23 @@ const Index = () => {
     void sendToAI(text);
   };
 
-  const showEmptyState = messages.length === 0 && !isTyping;
+  const prefillInput = (template: string, selectionStart: number, selectionLength: number) => {
+    if (isTyping) return;
+    setInput(template);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(selectionStart, selectionStart + selectionLength);
+    });
+  };
+
+  const sendQuickAction = (text: string) => {
+    if (isTyping) return;
+    addMessage(text, "user");
+    void sendToAI(text);
+  };
+
 
   const examplePrompts = [
     "I made 200k and spent 80k",
