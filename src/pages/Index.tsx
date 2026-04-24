@@ -30,6 +30,7 @@ const Index = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [todayEntry, setTodayEntry] = useState<DailyEntry | null>(null);
+  const [recentEntries, setRecentEntries] = useState<DailyEntry[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
