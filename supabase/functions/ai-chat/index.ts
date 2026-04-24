@@ -292,7 +292,7 @@ async function executeTool(
       .gte("date", weekAgo.toISOString().split("T")[0])
       .order("date", { ascending: true });
     if (error) return { error: error.message };
-    const entries = data ?? [];
+    const entries: DailyEntryRow[] = (data ?? []) as DailyEntryRow[];
     const totalRevenue = entries.reduce((s, e) => s + Number(e.revenue), 0);
     const totalExpenses = entries.reduce((s, e) => s + Number(e.expenses), 0);
     return {
