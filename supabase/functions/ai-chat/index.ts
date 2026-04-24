@@ -71,12 +71,17 @@ const tools = [
     function: {
       name: "log_daily_money",
       description:
-        "Log today's revenue and/or expenses. Calculates profit automatically. Use when the user reports money earned or spent today.",
+        "Log today's revenue and/or expenses. Calculates profit automatically. Use when the user reports money earned or spent today. Pass the user's original message as raw_input so we can store the exact phrasing they used.",
       parameters: {
         type: "object",
         properties: {
           revenue: { type: "number", description: "Money earned today" },
           expenses: { type: "number", description: "Money spent today" },
+          raw_input: {
+            type: "string",
+            description:
+              "The user's original message verbatim (e.g. 'I made 200k and spent 80k'). Optional but preferred.",
+          },
         },
         required: ["revenue", "expenses"],
         additionalProperties: false,
@@ -168,8 +173,25 @@ const tools = [
 ];
 
 // ---- Tool execution ----
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DbClient = any;
+
+interface DailyEntryRow {
+  date: string;
+  revenue: number;
+  expenses: number;
+  profit: number;
+}
+
+interface InventoryRow {
+  item_name: string;
+  quantity: number;
+  unit?: string;
+  unit_price?: number;
+}
+
 async function executeTool(
-  supabase: ReturnType<typeof createClient>,
+  supabase: DbClient,
   userId: string,
   name: string,
   args: Record<string, unknown>,
@@ -179,10 +201,11 @@ async function executeTool(
     const expenses = Number(args.expenses) || 0;
     const profit = revenue - expenses;
     const date = new Date().toISOString().split("T")[0];
+    const rawInput = typeof args.raw_input === "string" ? args.raw_input : null;
     const { error } = await supabase
       .from("daily_entries")
       .upsert(
-        { user_id: userId, date, revenue, expenses, profit },
+        { user_id: userId, date, revenue, expenses, profit, raw_input: rawInput },
         { onConflict: "user_id,date" },
       );
     if (error) return { error: error.message };
@@ -269,7 +292,7 @@ async function executeTool(
       .gte("date", weekAgo.toISOString().split("T")[0])
       .order("date", { ascending: true });
     if (error) return { error: error.message };
-    const entries = data ?? [];
+    const entries: DailyEntryRow[] = (data ?? []) as DailyEntryRow[];
     const totalRevenue = entries.reduce((s, e) => s + Number(e.revenue), 0);
     const totalExpenses = entries.reduce((s, e) => s + Number(e.expenses), 0);
     return {
@@ -293,7 +316,7 @@ async function executeTool(
       .gte("date", startStr)
       .order("date", { ascending: true });
     if (error) return { error: error.message };
-    const entries = data ?? [];
+    const entries: DailyEntryRow[] = (data ?? []) as DailyEntryRow[];
 
     if (entries.length === 0) {
       return {
@@ -371,7 +394,7 @@ async function executeTool(
       .eq("user_id", userId)
       .order("item_name");
     if (error) return { error: error.message };
-    const items = data ?? [];
+    const items: InventoryRow[] = (data ?? []) as InventoryRow[];
     return {
       items,
       low_stock: items.filter((i) => Number(i.quantity) <= 5).map((i) => i.item_name),
@@ -389,6 +412,68 @@ async function executeTool(
   }
 
   return { error: `Unknown tool: ${name}` };
+}
+
+// ---- Pre-fetch financial context injected before the AI sees the user's message ----
+async function buildFinancialContext(
+  supabase: DbClient,
+  userId: string,
+): Promise<string> {
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const weekAgo = new Date(today);
+  weekAgo.setDate(weekAgo.getDate() - 6);
+  const weekAgoStr = weekAgo.toISOString().split("T")[0];
+
+  const { data, error } = await supabase
+    .from("daily_entries")
+    .select("date, revenue, expenses, profit")
+    .eq("user_id", userId)
+    .gte("date", weekAgoStr)
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.error("buildFinancialContext error:", error);
+    return "User financial data: unavailable right now.";
+  }
+
+  const entries: DailyEntryRow[] = (data ?? []) as DailyEntryRow[];
+  const todayEntry = entries.find((e) => e.date === todayStr);
+
+  const totalRevenue = entries.reduce((s, e) => s + Number(e.revenue || 0), 0);
+  const totalExpenses = entries.reduce((s, e) => s + Number(e.expenses || 0), 0);
+  const totalProfit = totalRevenue - totalExpenses;
+  const profitableDays = entries.filter((e) => Number(e.profit) > 0).length;
+  const lossDays = entries.filter((e) => Number(e.profit) < 0).length;
+
+  const lines: string[] = [];
+  lines.push("User financial data (use this as context, do NOT read it back as a list):");
+
+  if (todayEntry) {
+    lines.push(
+      `- Today (${todayStr}): revenue ${todayEntry.revenue}, expenses ${todayEntry.expenses}, profit ${todayEntry.profit}`,
+    );
+  } else {
+    lines.push(`- Today (${todayStr}): not logged yet`);
+  }
+
+  if (entries.length === 0) {
+    lines.push("- Last 7 days: no entries yet");
+  } else {
+    lines.push(
+      `- Last 7 days (${entries.length} day${entries.length > 1 ? "s" : ""} logged): revenue ${totalRevenue}, expenses ${totalExpenses}, profit ${totalProfit}, ${profitableDays} profitable day(s), ${lossDays} loss day(s)`,
+    );
+    const recent = entries.slice(-5).map(
+      (e) => `${e.date}: +${e.revenue}/-${e.expenses}=${e.profit}`,
+    );
+    lines.push(`- Recent entries: ${recent.join("; ")}`);
+  }
+
+  lines.push(
+    "When the user logs new money this turn, still call log_daily_money so it gets saved (and pass raw_input).",
+  );
+
+  return lines.join("\n");
 }
 
 Deno.serve(async (req) => {
@@ -432,8 +517,13 @@ Deno.serve(async (req) => {
     // Use service-role client for tool execution; we scope every query by userId explicitly.
     const supabase = adminClient;
 
+    // Pre-fetch the user's recent financial context so the AI always has it,
+    // even before deciding to call a tool.
+    const financialContext = await buildFinancialContext(supabase, userId);
+
     const conversation: Array<Record<string, unknown>> = [
       { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: financialContext },
       ...messages,
     ];
 
