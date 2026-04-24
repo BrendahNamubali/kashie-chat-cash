@@ -71,12 +71,17 @@ const tools = [
     function: {
       name: "log_daily_money",
       description:
-        "Log today's revenue and/or expenses. Calculates profit automatically. Use when the user reports money earned or spent today.",
+        "Log today's revenue and/or expenses. Calculates profit automatically. Use when the user reports money earned or spent today. Pass the user's original message as raw_input so we can store the exact phrasing they used.",
       parameters: {
         type: "object",
         properties: {
           revenue: { type: "number", description: "Money earned today" },
           expenses: { type: "number", description: "Money spent today" },
+          raw_input: {
+            type: "string",
+            description:
+              "The user's original message verbatim (e.g. 'I made 200k and spent 80k'). Optional but preferred.",
+          },
         },
         required: ["revenue", "expenses"],
         additionalProperties: false,
