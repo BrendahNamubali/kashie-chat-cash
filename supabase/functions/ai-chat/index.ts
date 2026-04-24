@@ -414,6 +414,68 @@ async function executeTool(
   return { error: `Unknown tool: ${name}` };
 }
 
+// ---- Pre-fetch financial context injected before the AI sees the user's message ----
+async function buildFinancialContext(
+  supabase: DbClient,
+  userId: string,
+): Promise<string> {
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const weekAgo = new Date(today);
+  weekAgo.setDate(weekAgo.getDate() - 6);
+  const weekAgoStr = weekAgo.toISOString().split("T")[0];
+
+  const { data, error } = await supabase
+    .from("daily_entries")
+    .select("date, revenue, expenses, profit")
+    .eq("user_id", userId)
+    .gte("date", weekAgoStr)
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.error("buildFinancialContext error:", error);
+    return "User financial data: unavailable right now.";
+  }
+
+  const entries: DailyEntryRow[] = (data ?? []) as DailyEntryRow[];
+  const todayEntry = entries.find((e) => e.date === todayStr);
+
+  const totalRevenue = entries.reduce((s, e) => s + Number(e.revenue || 0), 0);
+  const totalExpenses = entries.reduce((s, e) => s + Number(e.expenses || 0), 0);
+  const totalProfit = totalRevenue - totalExpenses;
+  const profitableDays = entries.filter((e) => Number(e.profit) > 0).length;
+  const lossDays = entries.filter((e) => Number(e.profit) < 0).length;
+
+  const lines: string[] = [];
+  lines.push("User financial data (use this as context, do NOT read it back as a list):");
+
+  if (todayEntry) {
+    lines.push(
+      `- Today (${todayStr}): revenue ${todayEntry.revenue}, expenses ${todayEntry.expenses}, profit ${todayEntry.profit}`,
+    );
+  } else {
+    lines.push(`- Today (${todayStr}): not logged yet`);
+  }
+
+  if (entries.length === 0) {
+    lines.push("- Last 7 days: no entries yet");
+  } else {
+    lines.push(
+      `- Last 7 days (${entries.length} day${entries.length > 1 ? "s" : ""} logged): revenue ${totalRevenue}, expenses ${totalExpenses}, profit ${totalProfit}, ${profitableDays} profitable day(s), ${lossDays} loss day(s)`,
+    );
+    const recent = entries.slice(-5).map(
+      (e) => `${e.date}: +${e.revenue}/-${e.expenses}=${e.profit}`,
+    );
+    lines.push(`- Recent entries: ${recent.join("; ")}`);
+  }
+
+  lines.push(
+    "When the user logs new money this turn, still call log_daily_money so it gets saved (and pass raw_input).",
+  );
+
+  return lines.join("\n");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
