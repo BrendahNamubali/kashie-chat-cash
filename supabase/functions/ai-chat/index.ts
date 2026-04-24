@@ -316,7 +316,7 @@ async function executeTool(
       .gte("date", startStr)
       .order("date", { ascending: true });
     if (error) return { error: error.message };
-    const entries = data ?? [];
+    const entries: DailyEntryRow[] = (data ?? []) as DailyEntryRow[];
 
     if (entries.length === 0) {
       return {
@@ -394,7 +394,7 @@ async function executeTool(
       .eq("user_id", userId)
       .order("item_name");
     if (error) return { error: error.message };
-    const items = data ?? [];
+    const items: InventoryRow[] = (data ?? []) as InventoryRow[];
     return {
       items,
       low_stock: items.filter((i) => Number(i.quantity) <= 5).map((i) => i.item_name),
