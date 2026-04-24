@@ -4,7 +4,7 @@ import ChatMessage from "@/components/ChatMessage";
 import TypingIndicator from "@/components/TypingIndicator";
 import ChatSidebar, { SidebarOpenButton } from "@/components/ChatSidebar";
 import { supabase } from "@/integrations/supabase/client";
-import { getLowStockGreeting, getTodayEntry, getProfile, type DailyEntry, type Profile } from "@/lib/finance";
+import { getLowStockGreeting, getTodayEntry, getProfile, getRecentEntries, type DailyEntry, type Profile } from "@/lib/finance";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -22,6 +22,30 @@ const firstName = (full?: string | null) => {
   return full.trim().split(/\s+/)[0] || null;
 };
 
+// Compact money: 200000 -> "200k", 1500000 -> "1.5m"
+const compactMoney = (n: number): string => {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) {
+    const v = n / 1_000_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(1)}m`;
+  }
+  if (abs >= 1_000) {
+    const v = n / 1_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(1)}k`;
+  }
+  return `${n}`;
+};
+
+const labelForDate = (dateStr: string): string => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr + "T00:00:00");
+  const diffDays = Math.round((today.getTime() - d.getTime()) / 86400000);
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+};
+
 const Index = () => {
   const { signOut } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -30,6 +54,7 @@ const Index = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [todayEntry, setTodayEntry] = useState<DailyEntry | null>(null);
+  const [recentEntries, setRecentEntries] = useState<DailyEntry[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -84,6 +109,7 @@ const Index = () => {
   useEffect(() => {
     if (isTyping) return;
     void getTodayEntry().then(setTodayEntry);
+    void getRecentEntries(7).then(setRecentEntries);
   }, [isTyping, messages.length]);
 
   const sendToAI = useCallback(
@@ -238,6 +264,48 @@ const Index = () => {
 
         <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm">
           <div className="max-w-2xl mx-auto w-full px-4 md:px-6 py-4">
+            {/* Today's status indicator */}
+            <div className="mb-2 flex items-center px-1">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground/80">Today's status:</span>{" "}
+                {todayEntry ? (
+                  todayEntry.profit > 0 ? (
+                    <span className="text-foreground/80">Profit {compactMoney(todayEntry.profit)} 👏</span>
+                  ) : todayEntry.profit < 0 ? (
+                    <span className="text-foreground/80">Loss {compactMoney(Math.abs(todayEntry.profit))} 📉</span>
+                  ) : (
+                    <span className="text-foreground/80">Broke even 👍</span>
+                  )
+                ) : (
+                  <span>Not logged yet 👀</span>
+                )}
+              </p>
+            </div>
+
+            {/* Recent activity — last 5 logs */}
+            {recentEntries.length > 0 && (
+              <div className="mb-3 rounded-2xl border border-border/70 bg-muted/20 px-4 py-3">
+                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                  Recent activity
+                </p>
+                <ul className="space-y-1">
+                  {recentEntries.slice(0, 5).map((e) => (
+                    <li
+                      key={e.date}
+                      className="flex items-center justify-between text-xs text-foreground/70"
+                    >
+                      <span className="text-muted-foreground">{labelForDate(e.date)}:</span>
+                      <span className="tabular-nums">
+                        <span className="text-emerald-500">+{compactMoney(e.revenue)}</span>
+                        <span className="text-muted-foreground/60 mx-1.5">·</span>
+                        <span className="text-rose-500">-{compactMoney(e.expenses)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {showEmptyState && !todayEntry && (
               <div className="mb-3 rounded-2xl border border-border/70 bg-muted/30 px-4 py-3.5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">

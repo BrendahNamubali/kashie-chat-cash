@@ -69,6 +69,16 @@ export async function getTodayEntry(): Promise<DailyEntry | null> {
   return data ?? null;
 }
 
+export async function getRecentEntries(limit = 5): Promise<DailyEntry[]> {
+  const { data, error } = await supabase
+    .from("daily_entries")
+    .select("date, revenue, expenses, profit")
+    .order("date", { ascending: false })
+    .limit(limit);
+  if (error) { console.error(error); return []; }
+  return data ?? [];
+}
+
 export async function getWeekEntries(): Promise<DailyEntry[]> {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
