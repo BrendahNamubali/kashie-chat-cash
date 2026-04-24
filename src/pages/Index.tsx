@@ -85,6 +85,7 @@ const Index = () => {
   useEffect(() => {
     if (isTyping) return;
     void getTodayEntry().then(setTodayEntry);
+    void getRecentEntries(7).then(setRecentEntries);
   }, [isTyping, messages.length]);
 
   const sendToAI = useCallback(
