@@ -173,8 +173,11 @@ const tools = [
 ];
 
 // ---- Tool execution ----
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DbClient = any;
+
 async function executeTool(
-  supabase: ReturnType<typeof createClient>,
+  supabase: DbClient,
   userId: string,
   name: string,
   args: Record<string, unknown>,
@@ -184,10 +187,11 @@ async function executeTool(
     const expenses = Number(args.expenses) || 0;
     const profit = revenue - expenses;
     const date = new Date().toISOString().split("T")[0];
+    const rawInput = typeof args.raw_input === "string" ? args.raw_input : null;
     const { error } = await supabase
       .from("daily_entries")
       .upsert(
-        { user_id: userId, date, revenue, expenses, profit },
+        { user_id: userId, date, revenue, expenses, profit, raw_input: rawInput },
         { onConflict: "user_id,date" },
       );
     if (error) return { error: error.message };
