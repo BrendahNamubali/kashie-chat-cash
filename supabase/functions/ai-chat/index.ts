@@ -176,6 +176,20 @@ const tools = [
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DbClient = any;
 
+interface DailyEntryRow {
+  date: string;
+  revenue: number;
+  expenses: number;
+  profit: number;
+}
+
+interface InventoryRow {
+  item_name: string;
+  quantity: number;
+  unit?: string;
+  unit_price?: number;
+}
+
 async function executeTool(
   supabase: DbClient,
   userId: string,
