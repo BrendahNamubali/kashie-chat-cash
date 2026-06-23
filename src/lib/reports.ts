@@ -1,0 +1,169 @@
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import type { DailyEntry, InventoryItem, Profile } from "@/lib/finance";
+import { computeHealthScore, computeAlerts, buildExpenseBreakdown } from "@/lib/insights";
+
+type ReportKind = "pnl" | "expenses" | "inventory" | "health";
+
+interface BuildArgs {
+  kind: ReportKind;
+  entries: DailyEntry[];
+  inventory: InventoryItem[];
+  profile: Profile | null;
+}
+
+const money = (n: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+
+function header(doc: jsPDF, title: string, profile: Profile | null) {
+  doc.setFillColor(16, 122, 87);
+  doc.rect(0, 0, doc.internal.pageSize.getWidth(), 60, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text("Kashie", 40, 30);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text("AI CFO Report", 40, 46);
+
+  doc.setFontSize(11);
+  const rightX = doc.internal.pageSize.getWidth() - 40;
+  doc.text(profile?.business_name ?? "Your business", rightX, 30, { align: "right" });
+  doc.setFontSize(9);
+  doc.text(new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }), rightX, 46, {
+    align: "right",
+  });
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text(title, 40, 90);
+}
+
+export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs): jsPDF {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+  if (kind === "pnl") {
+    header(doc, "Profit & Loss Report", profile);
+    const rev = entries.reduce((s, e) => s + Number(e.revenue || 0), 0);
+    const exp = entries.reduce((s, e) => s + Number(e.expenses || 0), 0);
+    const profit = rev - exp;
+
+    autoTable(doc, {
+      startY: 110,
+      theme: "plain",
+      body: [
+        ["Total revenue", money(rev)],
+        ["Total expenses", money(exp)],
+        ["Net profit", money(profit)],
+        ["Days logged", `${entries.length}`],
+      ],
+      styles: { fontSize: 11, cellPadding: 8 },
+      columnStyles: { 0: { fontStyle: "bold", textColor: [71, 85, 105] }, 1: { halign: "right" } },
+    });
+
+    autoTable(doc, {
+      head: [["Date", "Revenue", "Expenses", "Profit"]],
+      body: entries.map((e) => [
+        e.date,
+        money(Number(e.revenue)),
+        money(Number(e.expenses)),
+        money(Number(e.profit)),
+      ]),
+      styles: { fontSize: 9, cellPadding: 6 },
+      headStyles: { fillColor: [16, 122, 87], textColor: 255 },
+      columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" } },
+    });
+  }
+
+  if (kind === "expenses") {
+    header(doc, "Expense Breakdown Report", profile);
+    const breakdown = buildExpenseBreakdown(entries);
+    const total = breakdown.reduce((s, b) => s + b.value, 0);
+    autoTable(doc, {
+      startY: 110,
+      head: [["Category", "Amount", "% of total"]],
+      body: breakdown.map((b) => [
+        b.name,
+        money(b.value),
+        total > 0 ? `${((b.value / total) * 100).toFixed(1)}%` : "—",
+      ]),
+      styles: { fontSize: 10, cellPadding: 7 },
+      headStyles: { fillColor: [16, 122, 87], textColor: 255 },
+      columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } },
+    });
+  }
+
+  if (kind === "inventory") {
+    header(doc, "Inventory Report", profile);
+    autoTable(doc, {
+      startY: 110,
+      head: [["Item", "Quantity", "Unit", "Status"]],
+      body: inventory.map((i) => [
+        i.item_name,
+        `${i.quantity}`,
+        i.unit,
+        Number(i.quantity) <= 5 ? "Low" : "OK",
+      ]),
+      styles: { fontSize: 10, cellPadding: 7 },
+      headStyles: { fillColor: [16, 122, 87], textColor: 255 },
+      columnStyles: { 1: { halign: "right" } },
+    });
+  }
+
+  if (kind === "health") {
+    header(doc, "Business Health Report", profile);
+    const h = computeHealthScore(entries);
+    const alerts = computeAlerts(entries, inventory);
+    autoTable(doc, {
+      startY: 110,
+      theme: "plain",
+      body: [
+        ["Health score", `${h.score} / 100`],
+        ["Rating", h.label],
+        ["Days analysed", `${entries.length}`],
+        ["Active alerts", `${alerts.length}`],
+      ],
+      styles: { fontSize: 11, cellPadding: 8 },
+      columnStyles: { 0: { fontStyle: "bold", textColor: [71, 85, 105] }, 1: { halign: "right" } },
+    });
+
+    if (alerts.length > 0) {
+      autoTable(doc, {
+        head: [["Severity", "Alert", "Detail"]],
+        body: alerts.map((a) => [a.severity.toUpperCase(), a.title, a.detail]),
+        styles: { fontSize: 9, cellPadding: 6 },
+        headStyles: { fillColor: [16, 122, 87], textColor: 255 },
+      });
+    }
+  }
+
+  // Footer
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(
+      `Generated by Kashie · Page ${i} of ${pageCount}`,
+      doc.internal.pageSize.getWidth() / 2,
+      doc.internal.pageSize.getHeight() - 20,
+      { align: "center" },
+    );
+  }
+  return doc;
+}
+
+export function exportReportPdf(args: BuildArgs, filename: string) {
+  const doc = buildReportPdf(args);
+  doc.save(filename);
+}
+
+export function printReportPdf(args: BuildArgs) {
+  const doc = buildReportPdf(args);
+  const blob = doc.output("bloburl");
+  const w = window.open(blob as unknown as string, "_blank");
+  if (w) {
+    w.addEventListener("load", () => w.print());
+  }
+}

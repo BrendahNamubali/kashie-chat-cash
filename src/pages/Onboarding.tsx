@@ -23,7 +23,7 @@ const Onboarding = () => {
     (async () => {
       const profile = await getProfile();
       if (profile?.onboarding_completed) {
-        navigate("/chat", { replace: true });
+        navigate("/dashboard", { replace: true });
         return;
       }
       // Pre-fill if data already exists from signup metadata
@@ -51,7 +51,7 @@ const Onboarding = () => {
       setLoading(false);
       return;
     }
-    navigate("/chat", { replace: true });
+    navigate("/dashboard", { replace: true });
   };
 
   if (authLoading || checking) {
