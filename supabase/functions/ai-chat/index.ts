@@ -1,3 +1,11 @@
+const authHeader = req.headers.get('Authorization');
+if (!authHeader) {
+  return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    status: 401,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
 // Kashie AI chat edge function with tool-calling
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
