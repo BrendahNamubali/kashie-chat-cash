@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, FileText, LogOut } from "lucide-react";
+import { LayoutDashboard, MessageSquare, FileText, LogOut, Play } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/reports", label: "Reports", icon: FileText },
+  { to: "/demo-center", label: "Demo", icon: Play },
 ];
 
 const AppLayout = ({ children }: Props) => {
