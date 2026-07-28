@@ -11,6 +11,8 @@ import Reports from "./pages/Reports.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import DemoCenter from "./pages/DemoCenter.tsx";
+import DemoAdmin from "./pages/DemoAdmin.tsx";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +55,15 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/demo-center" element={<DemoCenter />} />
+            <Route
+              path="/demo-center/admin"
+              element={
+                <ProtectedRoute>
+                  <DemoAdmin />
                 </ProtectedRoute>
               }
             />
