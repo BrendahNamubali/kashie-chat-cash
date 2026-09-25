@@ -1,0 +1,4 @@
+- [ ] Add a concise public landing page for signed-out visitors with the requested trial messaging.
+- [ ] Add a real-data authenticated Home and connect questions/actions to existing destinations.
+- [ ] Make login, onboarding, and navigation lead to Home while preserving Dashboard and chat.
+- [ ] Verify public and signed-in flows, mobile layout, and build status.
