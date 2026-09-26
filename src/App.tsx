@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
@@ -13,8 +14,16 @@ import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import DemoCenter from "./pages/DemoCenter.tsx";
 import DemoAdmin from "./pages/DemoAdmin.tsx";
+import Home from "./pages/Home.tsx";
+import Landing from "./pages/Landing.tsx";
 
 const queryClient = new QueryClient();
+
+const RootPage = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen bg-background" />;
+  return user ? <Navigate to="/home" replace /> : <Landing />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -24,13 +33,21 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<RootPage />} />
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/onboarding"
               element={
                 <ProtectedRoute requireOnboarding={false}>
                   <Onboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <Home />
                 </ProtectedRoute>
               }
             />

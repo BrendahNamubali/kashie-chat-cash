@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getLowStockGreeting, getTodayEntry, getProfile, getRecentEntries, type DailyEntry, type Profile } from "@/lib/finance";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface Message {
   id: string;
@@ -47,6 +48,9 @@ const labelForDate = (dateStr: string): string => {
 };
 
 const Index = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const handledPrompt = useRef(false);
   const { signOut } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiHistory, setAiHistory] = useState<AiMsg[]>([]);
@@ -145,6 +149,21 @@ const Index = () => {
     },
     [aiHistory, addMessage],
   );
+
+  useEffect(() => {
+    const state = location.state as { prompt?: unknown; autoSend?: unknown } | null;
+    if (handledPrompt.current || typeof state?.prompt !== "string" || !state.prompt.trim()) return;
+    handledPrompt.current = true;
+    const prompt = state.prompt.trim();
+    navigate(location.pathname, { replace: true, state: null });
+    if (state.autoSend === true) {
+      addMessage(prompt, "user");
+      void sendToAI(prompt);
+    } else {
+      setInput(prompt);
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+  }, [location.pathname, location.state, navigate, addMessage, sendToAI]);
 
   const handleSend = () => {
     const text = input.trim();
