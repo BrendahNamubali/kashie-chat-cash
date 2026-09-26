@@ -361,9 +361,9 @@ const Index = () => {
                     >
                       <span className="text-muted-foreground">{labelForDate(e.date)}:</span>
                       <span className="tabular-nums">
-                        <span className="text-emerald-500">+{compactMoney(e.revenue)}</span>
+                        <span className="text-positive-soft0">+{compactMoney(e.revenue)}</span>
                         <span className="text-muted-foreground/60 mx-1.5">·</span>
-                        <span className="text-rose-500">-{compactMoney(e.expenses)}</span>
+                        <span className="text-negative-strong">-{compactMoney(e.expenses)}</span>
                       </span>
                     </li>
                   ))}

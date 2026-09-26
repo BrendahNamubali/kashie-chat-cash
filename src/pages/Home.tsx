@@ -99,7 +99,7 @@ const Home = () => {
       <div className="mx-auto max-w-5xl px-4 py-6 pb-10 md:px-8 md:py-10 space-y-7 md:space-y-9">
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-primary mb-2">KASHIE / HOME</p>
+            <p className="text-xs font-semibold text-sage mb-2 tracking-wider">KASHIE / HOME</p>
             <h1 className="text-2xl md:text-3xl font-semibold text-foreground break-words">{getGreeting()}, {profile?.business_name || "your business"}</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">Here's what's happening with your business.</p>
           </div>
@@ -127,21 +127,21 @@ const Home = () => {
           {loading ? <p className="text-sm text-muted-foreground">Checking your business…</p> : overview.alerts.length ? (
             <ul className="grid gap-2 md:grid-cols-2">
               {overview.alerts.slice(0, 4).map((alert) => (
-                <li key={alert.title} className="border-l-2 border-primary bg-muted/40 px-3 py-2.5">
+                <li key={alert.title} className="border-l-2 border-warning bg-card px-3 py-2.5">
                   <p className="text-sm font-medium text-foreground">{alert.title}</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{alert.detail}</p>
                 </li>
               ))}
             </ul>
-          ) : <div className="flex items-center gap-2 text-sm text-foreground"><CircleCheck className="size-4 text-primary" /> All clear. Keep up the good work!</div>}
+          ) : <div className="flex items-center gap-2 text-sm text-foreground"><CircleCheck className="size-4 text-positive" /> All clear. Keep up the good work!</div>}
         </section>
 
-        <section aria-labelledby="ask-title">
-          <div className="flex items-center gap-2 mb-3"><MessageCircle className="size-4 text-primary" /><h2 id="ask-title" className="text-base font-semibold text-foreground">Ask Kashie</h2></div>
+        <section aria-labelledby="ask-title" className="rounded-lg bg-ai-soft/60 border border-ai/30 p-4 md:p-5">
+          <div className="flex items-center gap-2 mb-3"><Sparkles className="size-4 text-ai-strong" /><h2 id="ask-title" className="text-base font-semibold text-foreground">Ask Kashie</h2></div>
           <div className="grid gap-2 md:grid-cols-2">
             {questions.map((question) => (
-              <Button asChild variant="outline" key={question} className="h-auto min-h-11 justify-between text-left whitespace-normal py-2.5 px-3.5 font-normal">
-                <Link to="/chat" state={{ prompt: question, autoSend: true }}><span>{question}</span><ArrowRight className="size-4 shrink-0 ml-2 text-primary" /></Link>
+              <Button asChild variant="outline" key={question} className="h-auto min-h-11 justify-between text-left whitespace-normal py-2.5 px-3.5 font-normal bg-card border-ai/30 hover:bg-card hover:border-ai">
+                <Link to="/chat" state={{ prompt: question, autoSend: true }}><span>{question}</span><ArrowRight className="size-4 shrink-0 ml-2 text-ai-strong" /></Link>
               </Button>
             ))}
           </div>

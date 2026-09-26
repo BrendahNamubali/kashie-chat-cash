@@ -25,12 +25,12 @@ const AppLayout = ({ children }: Props) => {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 flex-col border-r border-border bg-sidebar">
         <div className="px-5 py-5 border-b border-sidebar-border flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-sm shadow-primary/30">
+          <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-sm">
             K
           </div>
           <div className="leading-tight">
             <p className="text-sm font-semibold text-sidebar-foreground">Kashie</p>
-            <p className="text-[10px] text-muted-foreground">AI CFO</p>
+            <p className="text-[10px] font-medium text-ai-strong">AI CFO</p>
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1">

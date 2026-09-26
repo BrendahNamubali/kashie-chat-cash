@@ -1,6 +1,6 @@
 const TypingIndicator = () => (
   <div className="flex justify-start mb-6 gap-3">
-    <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0 mt-0.5">
+    <div className="w-7 h-7 rounded-full bg-ai text-ai-foreground flex items-center justify-center text-xs font-semibold shrink-0 mt-0.5">
       K
     </div>
     <div className="flex items-center h-7 gap-1.5">
