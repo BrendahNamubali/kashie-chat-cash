@@ -47,6 +47,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sage: "hsl(var(--sage))",
+        ai: {
+          DEFAULT: "hsl(var(--ai))",
+          foreground: "hsl(var(--ai-foreground))",
+          soft: "hsl(var(--ai-soft))",
+          strong: "hsl(var(--ai-strong))",
+        },
+        positive: { DEFAULT: "hsl(var(--positive))", soft: "hsl(var(--positive-soft))" },
+        warning: { DEFAULT: "hsl(var(--warning))", strong: "hsl(var(--warning-strong))", soft: "hsl(var(--warning-soft))" },
+        negative: { DEFAULT: "hsl(var(--negative))", strong: "hsl(var(--negative-strong))", soft: "hsl(var(--negative-soft))" },
         "chat-user": {
           DEFAULT: "hsl(var(--chat-user))",
           foreground: "hsl(var(--chat-user-foreground))",

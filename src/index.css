@@ -4,49 +4,54 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 13% 13%;
+    --background: 43 37% 92%;
+    --foreground: 0 0% 9%;
+    --card: 38 100% 98%;
+    --card-foreground: 0 0% 9%;
+    --popover: 38 100% 98%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 71 21% 32%;
+    --primary-foreground: 38 100% 98%;
+    --secondary: 42 30% 88%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 42 30% 88%;
+    --muted-foreground: 70 8% 36%;
+    --accent: 70 16% 86%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 54% 54%;
+    --destructive-foreground: 38 100% 98%;
+    --border: 40 22% 83%;
+    --input: 40 22% 80%;
+    --ring: 71 21% 32%;
+    --radius: 0.875rem;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 13% 13%;
+    --sage: 70 14% 48%;
+    --ai: 262 100% 73%;
+    --ai-foreground: 0 0% 9%;
+    --ai-soft: 261 100% 93%;
+    --ai-strong: 262 60% 48%;
+    --positive: 170 68% 29%;
+    --positive-soft: 168 40% 90%;
+    --warning: 37 69% 52%;
+    --warning-strong: 33 75% 34%;
+    --warning-soft: 40 75% 90%;
+    --negative: 0 54% 54%;
+    --negative-strong: 0 52% 44%;
+    --negative-soft: 0 60% 94%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 13%;
+    --chat-user: 42 30% 88%;
+    --chat-user-foreground: 0 0% 9%;
+    --chat-bot: 38 100% 98%;
+    --chat-bot-foreground: 0 0% 9%;
 
-    --primary: 160 84% 32%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 13% 20%;
-
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-
-    --accent: 220 14% 94%;
-    --accent-foreground: 220 13% 20%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 160 84% 32%;
-
-    --radius: 1.25rem;
-
-    --chat-user: 220 14% 96%;
-    --chat-user-foreground: 220 13% 13%;
-    --chat-bot: 0 0% 100%;
-    --chat-bot-foreground: 220 13% 13%;
-
-    --sidebar-background: 220 14% 98%;
-    --sidebar-foreground: 220 13% 26%;
-    --sidebar-primary: 220 13% 13%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 94%;
-    --sidebar-accent-foreground: 220 13% 13%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 160 84% 32%;
+    --sidebar-background: 42 35% 89%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 71 21% 32%;
+    --sidebar-primary-foreground: 38 100% 98%;
+    --sidebar-accent: 42 28% 84%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 40 22% 81%;
+    --sidebar-ring: 71 21% 32%;
   }
 }
 
@@ -61,7 +66,12 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Manrope', system-ui, sans-serif;
+  }
+
+  h1, h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    letter-spacing: -0.01em;
   }
 }
 

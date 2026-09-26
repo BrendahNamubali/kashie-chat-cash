@@ -16,7 +16,7 @@ const money = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
 function header(doc: jsPDF, title: string, profile: Profile | null) {
-  doc.setFillColor(16, 122, 87);
+  doc.setFillColor(91, 97, 64);
   doc.rect(0, 0, doc.internal.pageSize.getWidth(), 60, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
@@ -34,7 +34,7 @@ function header(doc: jsPDF, title: string, profile: Profile | null) {
     align: "right",
   });
 
-  doc.setTextColor(15, 23, 42);
+  doc.setTextColor(23, 23, 23);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.text(title, 40, 90);
@@ -71,7 +71,7 @@ export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs)
         money(Number(e.profit)),
       ]),
       styles: { fontSize: 9, cellPadding: 6 },
-      headStyles: { fillColor: [16, 122, 87], textColor: 255 },
+      headStyles: { fillColor: [91, 97, 64], textColor: 255 },
       columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" } },
     });
   }
@@ -89,7 +89,7 @@ export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs)
         total > 0 ? `${((b.value / total) * 100).toFixed(1)}%` : "—",
       ]),
       styles: { fontSize: 10, cellPadding: 7 },
-      headStyles: { fillColor: [16, 122, 87], textColor: 255 },
+      headStyles: { fillColor: [91, 97, 64], textColor: 255 },
       columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } },
     });
   }
@@ -106,7 +106,7 @@ export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs)
         Number(i.quantity) <= 5 ? "Low" : "OK",
       ]),
       styles: { fontSize: 10, cellPadding: 7 },
-      headStyles: { fillColor: [16, 122, 87], textColor: 255 },
+      headStyles: { fillColor: [91, 97, 64], textColor: 255 },
       columnStyles: { 1: { halign: "right" } },
     });
   }
@@ -133,7 +133,7 @@ export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs)
         head: [["Severity", "Alert", "Detail"]],
         body: alerts.map((a) => [a.severity.toUpperCase(), a.title, a.detail]),
         styles: { fontSize: 9, cellPadding: 6 },
-        headStyles: { fillColor: [16, 122, 87], textColor: 255 },
+        headStyles: { fillColor: [91, 97, 64], textColor: 255 },
       });
     }
   }

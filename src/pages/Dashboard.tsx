@@ -42,7 +42,7 @@ import {
 } from "@/lib/insights";
 import { Link } from "react-router-dom";
 
-const PIE_COLORS = ["hsl(160, 84%, 32%)", "hsl(199, 89%, 48%)", "hsl(38, 92%, 50%)", "hsl(346, 84%, 56%)"];
+const PIE_COLORS = ["hsl(var(--positive))", "hsl(var(--ai))", "hsl(var(--warning))", "hsl(var(--negative))"];
 
 const Dashboard = () => {
   const [entries, setEntries] = useState<DailyEntry[]>([]);
@@ -121,19 +121,19 @@ const Dashboard = () => {
                 label="Revenue"
                 value={formatMoney(totals.revenue)}
                 icon={<ArrowUpRight className="w-4 h-4" />}
-                accent="text-emerald-600 bg-emerald-50"
+                accent="text-positive bg-positive-soft"
               />
               <KpiCard
                 label="Expenses"
                 value={formatMoney(totals.expenses)}
                 icon={<ArrowDownRight className="w-4 h-4" />}
-                accent="text-rose-600 bg-rose-50"
+                accent="text-negative-strong bg-negative-soft"
               />
               <KpiCard
                 label="Profit"
                 value={formatMoney(totals.profit)}
                 icon={totals.profit >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                accent={totals.profit >= 0 ? "text-primary bg-primary/10" : "text-rose-600 bg-rose-50"}
+                accent={totals.profit >= 0 ? "text-primary bg-primary/10" : "text-negative-strong bg-negative-soft"}
               />
               <KpiCard
                 label="Health Score"
@@ -148,7 +148,7 @@ const Dashboard = () => {
                 value={`${alerts.length}`}
                 hint={alerts.length === 0 ? "All clear" : "Needs review"}
                 icon={<AlertTriangle className="w-4 h-4" />}
-                accent={alerts.length > 0 ? "text-amber-600 bg-amber-50" : "text-emerald-600 bg-emerald-50"}
+                accent={alerts.length > 0 ? "text-warning-strong bg-warning-soft" : "text-positive bg-positive-soft"}
               />
             </div>
 
@@ -162,8 +162,8 @@ const Dashboard = () => {
                     <LineChart data={trendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                       <defs>
                         <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(160,84%,32%)" stopOpacity={0.3} />
-                          <stop offset="100%" stopColor="hsl(160,84%,32%)" stopOpacity={0} />
+                          <stop offset="0%" stopColor="hsl(var(--positive))" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="hsl(var(--positive))" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -171,7 +171,7 @@ const Dashboard = () => {
                       <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => formatCompact(v)} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "hsl(var(--background))",
+                          backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
                           borderRadius: 12,
                           fontSize: 12,
@@ -181,9 +181,9 @@ const Dashboard = () => {
                       <Line
                         type="monotone"
                         dataKey="profit"
-                        stroke="hsl(160,84%,32%)"
+                        stroke="hsl(var(--positive))"
                         strokeWidth={2.5}
-                        dot={{ r: 3, fill: "hsl(160,84%,32%)" }}
+                        dot={{ r: 3, fill: "hsl(var(--positive))" }}
                         activeDot={{ r: 5 }}
                       />
                     </LineChart>
@@ -211,7 +211,7 @@ const Dashboard = () => {
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "hsl(var(--background))",
+                          backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
                           borderRadius: 12,
                           fontSize: 12,
@@ -237,7 +237,7 @@ const Dashboard = () => {
                       <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => formatCompact(v)} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "hsl(var(--background))",
+                          backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
                           borderRadius: 12,
                           fontSize: 12,
@@ -245,8 +245,8 @@ const Dashboard = () => {
                         formatter={(v: number) => formatMoney(v)}
                       />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Bar dataKey="revenue" fill="hsl(160,84%,32%)" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="expenses" fill="hsl(346, 84%, 56%)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="revenue" fill="hsl(var(--positive))" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="expenses" fill="hsl(var(--negative))" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -259,7 +259,7 @@ const Dashboard = () => {
                     <h3 className="text-sm font-semibold text-foreground">Active CFO alerts</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Live insights from your data</p>
                   </div>
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-warning-soft text-warning-strong flex items-center justify-center">
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                 </div>
@@ -275,9 +275,9 @@ const Dashboard = () => {
                         <div
                           className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
                             a.severity === "critical"
-                              ? "bg-rose-500"
+                              ? "bg-negative-soft0"
                               : a.severity === "warning"
-                              ? "bg-amber-500"
+                              ? "bg-warning-soft0"
                               : "bg-sky-500"
                           }`}
                         />
