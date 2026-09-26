@@ -21,7 +21,7 @@ const ChatMessage = ({ content, sender }: ChatMessageProps) => {
 
   return (
     <div className="flex justify-start mb-6 gap-3">
-      <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0 mt-0.5">
+      <div className="w-7 h-7 rounded-full bg-ai text-ai-foreground flex items-center justify-center text-xs font-semibold shrink-0 mt-0.5">
         K
       </div>
       <div className="flex-1 chat-bubble-bot pt-0.5 text-[15px] leading-relaxed prose-kashie">
