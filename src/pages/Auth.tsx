@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,8 +15,9 @@ const passwordSchema = z
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { session, loading: authLoading } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">(searchParams.get("mode") === "signup" ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +27,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (!authLoading && session) {
-      navigate("/", { replace: true });
+      navigate("/home", { replace: true });
     }
   }, [session, authLoading, navigate]);
 
@@ -77,7 +78,7 @@ const Auth = () => {
 
         // Email confirmation disabled — go straight in
         toast.success("Welcome to Kashie 👋");
-        navigate("/", { replace: true });
+        navigate("/home", { replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: emailParse.data,
@@ -103,7 +104,7 @@ const Auth = () => {
           }
           return;
         }
-        navigate("/", { replace: true });
+        navigate("/home", { replace: true });
       }
     } catch (err) {
       console.error("Auth error:", err);
@@ -126,7 +127,7 @@ const Auth = () => {
         return;
       }
       if (result.redirected) return;
-      navigate("/", { replace: true });
+      navigate("/home", { replace: true });
     } catch {
       toast.error("Google sign-in failed. Try again.");
       setLoading(false);
