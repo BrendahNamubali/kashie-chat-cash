@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getLowStockGreeting, getTodayEntry, getProfile, getRecentEntries, type DailyEntry, type Profile } from "@/lib/finance";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 interface Message {
   id: string;
@@ -227,14 +227,14 @@ const Index = () => {
               <SidebarOpenButton onClick={() => setSidebarOpen(true)} />
             </div>
           )}
-          <div className="flex flex-col items-center leading-tight">
+          <Link to="/" aria-label="Kashie home" className="flex flex-col items-center leading-tight rounded-md px-2 transition-opacity hover:opacity-75">
             <h1 className="font-semibold text-sm text-foreground">
               {business ?? "Kashie"}
             </h1>
             {business && (
               <span className="text-[10px] text-muted-foreground">Kashie</span>
             )}
-          </div>
+          </Link>
           <button
             onClick={signOut}
             className="absolute right-3 p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"

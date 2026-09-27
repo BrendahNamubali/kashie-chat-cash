@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -202,9 +202,9 @@ const Auth = () => {
       <div className="w-full max-w-md">
         {/* Logo + headline */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-semibold mb-4">
+          <Link to="/" aria-label="Kashie home" className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-semibold mb-4 transition-transform duration-200 hover:scale-105 active:scale-95">
             K
-          </div>
+          </Link>
           <h1 className="text-2xl font-semibold text-foreground mb-1.5">
             {mode === "signin" ? "Welcome back" : "Get started with Kashie"}
           </h1>
