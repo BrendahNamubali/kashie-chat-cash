@@ -80,7 +80,7 @@ const Reports = () => {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6">
+      <div className="animate-fade-up max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6">
         <div>
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Reports</p>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Financial reports</h1>

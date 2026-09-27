@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { format, subDays } from "date-fns";
 import { ArrowRight, ArrowUpRight, CircleCheck, Package, Receipt, TrendingUp, Wallet, MessageCircle, Sparkles, FileText, CalendarClock, Landmark } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import CountUp from "@/components/CountUp";
 import { Button } from "@/components/ui/button";
 import { getEntries, getInventory, getProfile, formatMoney, LOW_STOCK_THRESHOLD, type DailyEntry, type InventoryItem, type Profile } from "@/lib/finance";
 
@@ -88,16 +89,16 @@ const Home = () => {
   }, [entries, inventory]);
 
   const stats = [
-    { label: "Sales", value: overview.hasEntries ? formatMoney(overview.sales) : "—", icon: ArrowUpRight },
-    { label: "Expenses", value: overview.hasEntries ? formatMoney(overview.expenses) : "—", icon: Receipt },
-    { label: "Profit", value: overview.hasEntries ? formatMoney(overview.profit) : "—", icon: TrendingUp },
-    { label: "Low Stock", value: String(overview.lowStock.length), icon: Package },
+    { label: "Sales", num: overview.hasEntries ? overview.sales : null, fmt: formatMoney, icon: ArrowUpRight },
+    { label: "Expenses", num: overview.hasEntries ? overview.expenses : null, fmt: formatMoney, icon: Receipt },
+    { label: "Profit", num: overview.hasEntries ? overview.profit : null, fmt: formatMoney, icon: TrendingUp },
+    { label: "Low Stock", num: overview.lowStock.length, fmt: (n: number) => String(n), icon: Package },
   ];
 
   return (
     <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6 pb-10 md:px-8 md:py-10 space-y-7 md:space-y-9">
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
+        <header className="animate-fade-up flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
           <div className="min-w-0">
             <p className="text-xs font-semibold text-sage mb-2 tracking-wider">KASHIE / HOME</p>
             <h1 className="text-2xl md:text-3xl font-semibold text-foreground break-words">{getGreeting()}, {profile?.business_name || "your business"}</h1>
@@ -106,28 +107,28 @@ const Home = () => {
           <Button asChild variant="outline" size="sm"><Link to="/dashboard">Full dashboard <ArrowRight className="ml-2 size-4" /></Link></Button>
         </header>
 
-        <section aria-labelledby="summary-title">
+        <section aria-labelledby="summary-title" className="animate-fade-up [animation-delay:60ms]">
           <div className="flex items-baseline justify-between mb-3">
             <h2 id="summary-title" className="text-sm font-semibold text-foreground">At a glance</h2>
             <span className="text-xs text-muted-foreground">Last 30 days · stock is current</span>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:gap-3">
-            {stats.map(({ label, value, icon: Icon }) => (
-              <div key={label} className="min-w-0 rounded-lg border border-border bg-card p-3.5 md:p-4">
+            {stats.map(({ label, num, fmt, icon: Icon }, i) => (
+              <div key={label} style={{ animationDelay: `${100 + i * 50}ms` }} className="animate-fade-up min-w-0 rounded-lg border border-border bg-card p-3.5 md:p-4 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-sm">
                 <div className="flex items-center gap-2 text-muted-foreground"><Icon className="size-4 shrink-0" /><span className="text-xs font-medium">{label}</span></div>
-                <p className="mt-3 text-lg md:text-xl font-semibold text-foreground tabular-nums break-words">{loading ? "…" : value}</p>
+                <p className="mt-3 text-lg md:text-xl font-semibold text-foreground tabular-nums break-words">{loading ? "…" : num === null ? "—" : <CountUp value={num} format={fmt} />}</p>
                 {label === "Low Stock" && !loading && inventory.length === 0 && <p className="text-[11px] text-muted-foreground mt-1">No stock tracked yet</p>}
               </div>
             ))}
           </div>
         </section>
 
-        <section aria-labelledby="attention-title" className="border-b border-border pb-6">
+        <section aria-labelledby="attention-title" className="animate-fade-up [animation-delay:180ms] border-b border-border pb-6">
           <h2 id="attention-title" className="text-base font-semibold text-foreground mb-3">What needs your attention?</h2>
           {loading ? <p className="text-sm text-muted-foreground">Checking your business…</p> : overview.alerts.length ? (
             <ul className="grid gap-2 md:grid-cols-2">
-              {overview.alerts.slice(0, 4).map((alert) => (
-                <li key={alert.title} className="border-l-2 border-warning bg-card px-3 py-2.5">
+              {overview.alerts.slice(0, 4).map((alert, i) => (
+                <li key={alert.title} style={{ animationDelay: `${240 + i * 70}ms` }} className="animate-fade-up border-l-2 border-warning bg-card px-3 py-2.5">
                   <p className="text-sm font-medium text-foreground">{alert.title}</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{alert.detail}</p>
                 </li>
@@ -136,18 +137,19 @@ const Home = () => {
           ) : <div className="flex items-center gap-2 text-sm text-foreground"><CircleCheck className="size-4 text-positive" /> All clear. Keep up the good work!</div>}
         </section>
 
-        <section aria-labelledby="ask-title" className="rounded-lg bg-ai-soft/60 border border-ai/30 p-4 md:p-5">
-          <div className="flex items-center gap-2 mb-3"><Sparkles className="size-4 text-ai-strong" /><h2 id="ask-title" className="text-base font-semibold text-foreground">Ask Kashie</h2></div>
+        <section aria-labelledby="ask-title" className="animate-fade-up [animation-delay:260ms] relative overflow-hidden rounded-lg bg-ai-soft/60 border border-ai/30 p-4 md:p-5">
+          <div aria-hidden className="pointer-events-none absolute inset-0 animate-ai-sheen bg-[linear-gradient(110deg,transparent_35%,hsl(var(--ai)/0.18)_50%,transparent_65%)] bg-[length:200%_100%]" />
+          <div className="flex items-center gap-2 mb-3"><Sparkles className="size-4 text-ai-strong animate-ai-pop" /><h2 id="ask-title" className="text-base font-semibold text-foreground">Ask Kashie</h2></div>
           <div className="grid gap-2 md:grid-cols-2">
             {questions.map((question) => (
-              <Button asChild variant="outline" key={question} className="h-auto min-h-11 justify-between text-left whitespace-normal py-2.5 px-3.5 font-normal bg-card border-ai/30 hover:bg-card hover:border-ai">
+              <Button asChild variant="outline" key={question} className="h-auto min-h-11 justify-between text-left whitespace-normal py-2.5 px-3.5 font-normal bg-card border-ai/30 hover:bg-card hover:border-ai hover:-translate-y-0.5 relative">
                 <Link to="/chat" state={{ prompt: question, autoSend: true }}><span>{question}</span><ArrowRight className="size-4 shrink-0 ml-2 text-ai-strong" /></Link>
               </Button>
             ))}
           </div>
         </section>
 
-        <section aria-labelledby="actions-title">
+        <section aria-labelledby="actions-title" className="animate-fade-up [animation-delay:320ms]">
           <h2 id="actions-title" className="text-base font-semibold text-foreground mb-3">Quick actions</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {actions.map(({ label, icon: Icon, prompt, to }) => (

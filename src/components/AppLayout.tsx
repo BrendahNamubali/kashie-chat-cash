@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -24,15 +24,15 @@ const AppLayout = ({ children }: Props) => {
     <div className="flex flex-col md:flex-row h-screen w-full bg-background">
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 flex-col border-r border-border bg-sidebar">
-        <div className="px-5 py-5 border-b border-sidebar-border flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-sm">
+        <Link to="/" aria-label="Kashie home" className="group px-5 py-5 border-b border-sidebar-border flex items-center gap-2.5 hover:bg-sidebar-accent/60 transition-colors">
+          <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-sm transition-transform duration-200 group-hover:scale-105">
             K
           </div>
           <div className="leading-tight">
             <p className="text-sm font-semibold text-sidebar-foreground">Kashie</p>
             <p className="text-[10px] font-medium text-ai-strong">AI CFO</p>
           </div>
-        </div>
+        </Link>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map((item) => (
             <NavLink
@@ -68,12 +68,12 @@ const AppLayout = ({ children }: Props) => {
 
       {/* Mobile top bar */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background sticky top-0 z-30">
-        <div className="flex items-center gap-2">
+        <Link to="/" aria-label="Kashie home" className="flex items-center gap-2 transition-opacity hover:opacity-80 active:scale-95">
           <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">
             K
           </div>
           <p className="text-sm font-semibold">Kashie</p>
-        </div>
+        </Link>
         <button
           onClick={() => {
             signOut();
