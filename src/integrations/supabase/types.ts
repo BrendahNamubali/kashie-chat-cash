@@ -113,6 +113,142 @@ export type Database = {
         }
         Relationships: []
       }
+      efris_documents: {
+        Row: {
+          created_at: string
+          customer_brn: string | null
+          customer_name: string | null
+          customer_nin: string | null
+          customer_tin: string | null
+          customer_type: string
+          doc_type: string
+          fdn: string | null
+          id: string
+          issue_date: string
+          items: Json
+          local_number: string
+          qr_code: string | null
+          reason: string | null
+          related_document_id: string | null
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          ura_response: Json | null
+          user_id: string
+          vat_amount: number
+          verification_code: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_brn?: string | null
+          customer_name?: string | null
+          customer_nin?: string | null
+          customer_tin?: string | null
+          customer_type?: string
+          doc_type: string
+          fdn?: string | null
+          id?: string
+          issue_date?: string
+          items?: Json
+          local_number: string
+          qr_code?: string | null
+          reason?: string | null
+          related_document_id?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          ura_response?: Json | null
+          user_id: string
+          vat_amount?: number
+          verification_code?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_brn?: string | null
+          customer_name?: string | null
+          customer_nin?: string | null
+          customer_tin?: string | null
+          customer_type?: string
+          doc_type?: string
+          fdn?: string | null
+          id?: string
+          issue_date?: string
+          items?: Json
+          local_number?: string
+          qr_code?: string | null
+          reason?: string | null
+          related_document_id?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          ura_response?: Json | null
+          user_id?: string
+          vat_amount?: number
+          verification_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "efris_documents_related_document_id_fkey"
+            columns: ["related_document_id"]
+            isOneToOne: false
+            referencedRelation: "efris_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      efris_products: {
+        Row: {
+          commodity_code: string | null
+          created_at: string
+          id: string
+          inventory_item_id: string | null
+          item_code: string | null
+          kind: string
+          name: string
+          unit: string
+          unit_price: number
+          user_id: string
+          vat_category: string
+        }
+        Insert: {
+          commodity_code?: string | null
+          created_at?: string
+          id?: string
+          inventory_item_id?: string | null
+          item_code?: string | null
+          kind?: string
+          name: string
+          unit?: string
+          unit_price?: number
+          user_id: string
+          vat_category?: string
+        }
+        Update: {
+          commodity_code?: string | null
+          created_at?: string
+          id?: string
+          inventory_item_id?: string | null
+          item_code?: string | null
+          kind?: string
+          name?: string
+          unit?: string
+          unit_price?: number
+          user_id?: string
+          vat_category?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "efris_products_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           created_at: string
@@ -175,6 +311,114 @@ export type Database = {
           id?: string
           onboarding_completed?: boolean
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tax_profiles: {
+        Row: {
+          brn: string | null
+          business_address: string | null
+          created_at: string
+          efris_connection: string
+          efris_device_no: string | null
+          efris_status: string
+          id: string
+          legal_name: string | null
+          prices_include_vat: boolean
+          taxpayer_type: string
+          tin: string | null
+          updated_at: string
+          user_id: string
+          vat_registration_date: string | null
+          vat_status: string
+        }
+        Insert: {
+          brn?: string | null
+          business_address?: string | null
+          created_at?: string
+          efris_connection?: string
+          efris_device_no?: string | null
+          efris_status?: string
+          id?: string
+          legal_name?: string | null
+          prices_include_vat?: boolean
+          taxpayer_type?: string
+          tin?: string | null
+          updated_at?: string
+          user_id: string
+          vat_registration_date?: string | null
+          vat_status?: string
+        }
+        Update: {
+          brn?: string | null
+          business_address?: string | null
+          created_at?: string
+          efris_connection?: string
+          efris_device_no?: string | null
+          efris_status?: string
+          id?: string
+          legal_name?: string | null
+          prices_include_vat?: boolean
+          taxpayer_type?: string
+          tin?: string | null
+          updated_at?: string
+          user_id?: string
+          vat_registration_date?: string | null
+          vat_status?: string
+        }
+        Relationships: []
+      }
+      tax_returns: {
+        Row: {
+          authorized_at: string | null
+          created_at: string
+          figures: Json
+          id: string
+          inputs: Json
+          manual_ack_reference: string | null
+          manual_filed_at: string | null
+          notes: string | null
+          period_end: string
+          period_start: string
+          return_type: string
+          status: string
+          updated_at: string
+          ura_ack: Json | null
+          user_id: string
+        }
+        Insert: {
+          authorized_at?: string | null
+          created_at?: string
+          figures?: Json
+          id?: string
+          inputs?: Json
+          manual_ack_reference?: string | null
+          manual_filed_at?: string | null
+          notes?: string | null
+          period_end: string
+          period_start: string
+          return_type: string
+          status?: string
+          updated_at?: string
+          ura_ack?: Json | null
+          user_id: string
+        }
+        Update: {
+          authorized_at?: string | null
+          created_at?: string
+          figures?: Json
+          id?: string
+          inputs?: Json
+          manual_ack_reference?: string | null
+          manual_filed_at?: string | null
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          return_type?: string
+          status?: string
+          updated_at?: string
+          ura_ack?: Json | null
           user_id?: string
         }
         Relationships: []
