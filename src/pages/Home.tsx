@@ -21,7 +21,7 @@ const actions = [
   { label: "Inventory", icon: Package, prompt: "Show me my current stock" },
   { label: "Reports", icon: FileText, to: "/reports" },
   { label: "Forecast", icon: CalendarClock, prompt: "Based on my recorded business data, what might I expect next? If there isn't enough data, tell me." },
-  { label: "Tax", icon: Wallet, prompt: "Help me understand what my recorded sales and expenses might mean for tax. Don't guess tax rules or amounts." },
+  { label: "Tax", icon: Wallet, to: "/tax" },
   { label: "Financing", icon: Landmark, prompt: "Based on my recorded business data, what should I consider before seeking financing?" },
 ];
 
