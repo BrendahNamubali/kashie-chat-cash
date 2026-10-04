@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { DailyEntry, InventoryItem, Profile } from "@/lib/finance";

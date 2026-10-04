@@ -1,3 +1,4 @@
+import { formatCompactMoney } from "@/lib/currency";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowUp, LogOut } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
