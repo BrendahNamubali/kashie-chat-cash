@@ -18,6 +18,7 @@ export interface Profile {
   full_name: string | null;
   business_name: string | null;
   contact: string | null;
+  currency: string | null;
   onboarding_completed: boolean;
 }
 
@@ -98,7 +99,7 @@ export async function getWeekEntries(): Promise<DailyEntry[]> {
 export async function getProfile(): Promise<Profile | null> {
   const { data } = await supabase
     .from("profiles")
-    .select("full_name, business_name, contact, onboarding_completed")
+    .select("full_name, business_name, contact, onboarding_completed, currency")
     .maybeSingle();
   return data ?? null;
 }
@@ -107,6 +108,7 @@ export async function updateProfile(updates: {
   full_name?: string;
   business_name?: string;
   contact?: string | null;
+  currency?: string;
   onboarding_completed?: boolean;
 }) {
   const userId = await requireUserId();
@@ -182,15 +184,9 @@ export async function upsertInventoryItem(item: InventoryItem) {
 }
 
 // ---- Formatting ----
-
-export function formatMoney(n: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(n);
-}
+// Single source of truth lives in ./currency
+export { formatMoney } from "./currency";
+import { formatMoney } from "./currency";
 
 // ---- Message generators ----
 

@@ -43,7 +43,7 @@ How to use tools:
 - If something's unclear (missing amount, unclear item), ask ONE short follow-up.
 - Never expose tool names or technical details.
 
-Currency: format naturally ("$200", "200k", "1.2m"). Don't be rigid.
+Currency: ALWAYS use the business currency code given in the financial data (e.g. "UGX 200K", "UGX 1.2M"). Never use $, USD or any other currency unless that is the business currency.
 
 Examples:
 User: "I made 200k and spent 80k today"
@@ -437,8 +437,12 @@ async function buildFinancialContext(
   const profitableDays = entries.filter((e) => Number(e.profit) > 0).length;
   const lossDays = entries.filter((e) => Number(e.profit) < 0).length;
 
+  const { data: prof } = await supabase.from("profiles").select("currency").eq("user_id", userId).maybeSingle();
+  const currency = (prof?.currency as string) || "UGX";
+
   const lines: string[] = [];
   lines.push("User financial data (use this as context, do NOT read it back as a list):");
+  lines.push(`- Business currency: ${currency}. All amounts below are in ${currency}. Quote every amount in ${currency}.`);
 
   if (todayEntry) {
     lines.push(

@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play } from "lucide-react";
+import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +52,19 @@ const AppLayout = ({ children }: Props) => {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-sidebar-border">
+        <div className="p-3 border-t border-sidebar-border space-y-1">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors",
+                isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              )
+            }
+          >
+            <Settings className="w-4 h-4" />
+            Settings
+          </NavLink>
           <button
             onClick={() => {
               signOut();
@@ -74,6 +86,10 @@ const AppLayout = ({ children }: Props) => {
           </div>
           <p className="text-sm font-semibold">Kashie</p>
         </Link>
+        <div className="flex items-center gap-1">
+        <Link to="/settings" className="p-2 rounded-md hover:bg-accent text-muted-foreground" aria-label="Settings">
+          <Settings className="w-4 h-4" />
+        </Link>
         <button
           onClick={() => {
             signOut();
@@ -84,6 +100,7 @@ const AppLayout = ({ children }: Props) => {
         >
           <LogOut className="w-4 h-4" />
         </button>
+        </div>
       </header>
 
       {/* Main content */}
