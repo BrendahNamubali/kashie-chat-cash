@@ -4,6 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { getProfile, updateProfile } from "@/lib/finance";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import CurrencySelect, { isValidCurrency } from "@/components/CurrencySelect";
+import { setCurrency } from "@/lib/currency";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -11,6 +13,7 @@ const Onboarding = () => {
   const [fullName, setFullName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [contact, setContact] = useState("");
+  const [currency, setCurrencyCode] = useState("UGX");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
 
@@ -39,13 +42,19 @@ const Onboarding = () => {
     const fn = fullName.trim();
     const bn = businessName.trim();
     if (!fn || !bn || loading) return;
+    if (!isValidCurrency(currency)) {
+      toast.error("Pick your business currency");
+      return;
+    }
     setLoading(true);
     const { error } = await updateProfile({
       full_name: fn,
       business_name: bn,
       contact: contact.trim() || null,
+      currency,
       onboarding_completed: true,
     });
+    setCurrency(currency);
     if (error) {
       toast.error("Couldn't save that. Try again?");
       setLoading(false);
@@ -105,6 +114,13 @@ const Onboarding = () => {
               maxLength={100}
               className="w-full h-11 px-4 rounded-xl border border-border bg-card text-[15px] text-foreground placeholder:text-muted-foreground outline-none focus:border-ring transition-colors"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="currency" className="text-sm font-medium text-foreground">
+              Business currency
+            </label>
+            <CurrencySelect id="currency" value={currency} onChange={setCurrencyCode} />
           </div>
 
           <div className="space-y-1.5">
