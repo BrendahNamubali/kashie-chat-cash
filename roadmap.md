@@ -2,3 +2,6 @@
 - [x] Add a real-data authenticated Home and connect questions/actions to existing destinations.
 - [x] Make login, onboarding, and navigation lead to Home while preserving Dashboard and chat.
 - [x] Verify public and signed-in flows, mobile layout, and build status.
+- [x] Tax & EFRIS Center page (overview, EFRIS, returns, business details).
+- [ ] Tax: let Kashie's chat explain tax position from real data; add Tax to the main menu.
+- [x] Business currency: onboarding choice, one-time prompt, Settings, used everywhere incl. chat.
