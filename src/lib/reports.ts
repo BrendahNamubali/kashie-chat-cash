@@ -12,8 +12,7 @@ interface BuildArgs {
   profile: Profile | null;
 }
 
-const money = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+const money = (n: number) => formatMoney(n);
 
 function header(doc: jsPDF, title: string, profile: Profile | null) {
   doc.setFillColor(91, 97, 64);

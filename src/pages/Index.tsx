@@ -23,19 +23,8 @@ const firstName = (full?: string | null) => {
   return full.trim().split(/\s+/)[0] || null;
 };
 
-// Compact money: 200000 -> "200k", 1500000 -> "1.5m"
-const compactMoney = (n: number): string => {
-  const abs = Math.abs(n);
-  if (abs >= 1_000_000) {
-    const v = n / 1_000_000;
-    return `${Number.isInteger(v) ? v : v.toFixed(1)}m`;
-  }
-  if (abs >= 1_000) {
-    const v = n / 1_000;
-    return `${Number.isInteger(v) ? v : v.toFixed(1)}k`;
-  }
-  return `${n}`;
-};
+// Compact money in the business currency, e.g. "UGX 200K"
+const compactMoney = (n: number): string => formatCompactMoney(n);
 
 const labelForDate = (dateStr: string): string => {
   const today = new Date();
