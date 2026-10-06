@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play, Settings } from "lucide-react";
+import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play, Settings, Landmark } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/reports", label: "Reports", icon: FileText },
+  { to: "/tax", label: "Tax", icon: Landmark },
   { to: "/demo-center", label: "Demo", icon: Play },
 ];
 
