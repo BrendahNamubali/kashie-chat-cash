@@ -25,6 +25,8 @@ import {
   Legend,
 } from "recharts";
 import AppLayout from "@/components/AppLayout";
+import CountUp from "@/components/CountUp";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import {
   getEntries,
   getInventory,
@@ -45,6 +47,7 @@ import { Link } from "react-router-dom";
 const PIE_COLORS = ["hsl(var(--positive))", "hsl(var(--ai))", "hsl(var(--warning))", "hsl(var(--negative))"];
 
 const Dashboard = () => {
+  const reducedMotion = useReducedMotion();
   const [entries, setEntries] = useState<DailyEntry[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -119,33 +122,33 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
               <KpiCard
                 label="Revenue"
-                value={formatMoney(totals.revenue)}
+                value={<CountUp value={totals.revenue} format={formatMoney} />}
                 icon={<ArrowUpRight className="w-4 h-4" />}
                 accent="text-positive bg-positive-soft"
               />
               <KpiCard
                 label="Expenses"
-                value={formatMoney(totals.expenses)}
+                value={<CountUp value={totals.expenses} format={formatMoney} />}
                 icon={<ArrowDownRight className="w-4 h-4" />}
                 accent="text-negative-strong bg-negative-soft"
               />
               <KpiCard
                 label="Profit"
-                value={formatMoney(totals.profit)}
+                value={<CountUp value={totals.profit} format={formatMoney} />}
                 icon={totals.profit >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                 accent={totals.profit >= 0 ? "text-primary bg-primary/10" : "text-negative-strong bg-negative-soft"}
               />
               <KpiCard
                 label="Health Score"
-                value={`${health.score}`}
+                value={<CountUp value={health.score} format={String} />}
                 hint={health.label}
                 icon={<Activity className="w-4 h-4" />}
-                accent="text-sky-600 bg-sky-50"
+                accent="text-primary bg-primary/10"
                 gauge={health.score}
               />
               <KpiCard
                 label="CFO Alerts"
-                value={`${alerts.length}`}
+                value={<CountUp value={alerts.length} format={String} />}
                 hint={alerts.length === 0 ? "All clear" : "Needs review"}
                 icon={<AlertTriangle className="w-4 h-4" />}
                 accent={alerts.length > 0 ? "text-warning-strong bg-warning-soft" : "text-positive bg-positive-soft"}
@@ -179,6 +182,9 @@ const Dashboard = () => {
                         formatter={(v: number) => formatMoney(v)}
                       />
                       <Line
+                        isAnimationActive={!reducedMotion}
+                        animationDuration={600}
+                        animationEasing="ease-out"
                         type="monotone"
                         dataKey="profit"
                         stroke="hsl(var(--positive))"
@@ -198,6 +204,9 @@ const Dashboard = () => {
                   <ResponsiveContainer width="100%" height={260}>
                     <PieChart>
                       <Pie
+                        isAnimationActive={!reducedMotion}
+                        animationDuration={600}
+                        animationEasing="ease-out"
                         data={expenseBreakdown}
                         dataKey="value"
                         nameKey="name"
@@ -270,7 +279,7 @@ const Dashboard = () => {
                     {alerts.slice(0, 4).map((a) => (
                       <li
                         key={a.id}
-                        className="flex gap-3 p-3 rounded-xl bg-muted/30 border border-border/50"
+                        className="motion-enter flex gap-3 p-3 rounded-xl bg-muted/30 border border-border/50"
                       >
                         <div
                           className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
@@ -300,7 +309,7 @@ const Dashboard = () => {
 
 interface KpiCardProps {
   label: string;
-  value: string;
+  value: React.ReactNode;
   hint?: string;
   icon: React.ReactNode;
   accent: string;
@@ -308,17 +317,17 @@ interface KpiCardProps {
 }
 
 const KpiCard = ({ label, value, hint, icon, accent, gauge }: KpiCardProps) => (
-  <div className="rounded-2xl border border-border bg-card p-4 md:p-5">
+  <div className="motion-enter motion-card min-w-0 rounded-2xl border border-border bg-card p-4 md:p-5">
     <div className="flex items-center justify-between mb-3">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${accent}`}>{icon}</div>
     </div>
-    <p className="text-xl md:text-2xl font-bold text-foreground tabular-nums">{value}</p>
+    <p className="text-xl md:text-2xl font-bold text-foreground tabular-nums break-words">{value}</p>
     {hint && <p className="text-[11px] text-muted-foreground mt-1">{hint}</p>}
     {typeof gauge === "number" && (
       <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-primary to-sky-500 transition-all"
+          className="h-full bg-primary transition-all"
           style={{ width: `${Math.max(2, gauge)}%` }}
         />
       </div>
@@ -337,7 +346,7 @@ const ChartCard = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={`rounded-2xl border border-border bg-card p-5 ${className}`}>
+  <div className={`motion-enter motion-card min-w-0 rounded-2xl border border-border bg-card p-5 ${className}`}>
     <div className="mb-4">
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
