@@ -1,11 +1,3 @@
-const authHeader = req.headers.get('Authorization');
-if (!authHeader) {
-  return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-    status: 401,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
-
 // Kashie AI chat edge function with tool-calling
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -39,6 +31,7 @@ Understanding natural language:
 How to use tools:
 - Money/stock updates → CALL the right tool silently, then respond in the shape above with the calculated profit.
 - "How am I doing?" / "How's my week?" / "How's business?" → CALL get_performance_check, then react to the trend (up/down/steady) and expense behavior with ONE key insight. Use get_weekly_summary only when the user explicitly asks for totals.
+- Tax questions (VAT, income tax, EFRIS, "how much tax do I owe?", deadlines, "what do I fix before filing?") → CALL get_tax_position. Only quote figures it returns; never invent tax amounts. Always say they are estimates, not URA-confirmed, and mention what's missing if it matters. Never claim anything was submitted to URA unless the data says submitted_live/acknowledged_live.
 - Stock checks → CALL get_inventory, then interpret (don't just list).
 - If something's unclear (missing amount, unclear item), ask ONE short follow-up.
 - Never expose tool names or technical details.
@@ -137,6 +130,14 @@ const tools = [
       name: "get_performance_check",
       description:
         "Use this when the user asks 'how am I doing?', 'how's business?', 'how's my week?', or any general performance question. Returns recent vs prior period comparison, profit trend, expense behavior, and the single most important insight.",
+      parameters: { type: "object", properties: {}, additionalProperties: false },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_tax_position",
+      description: "Estimated tax position from the user's real data: this month's VAT estimate, fiscal-year income tax estimate, upcoming deadlines, missing business/tax details, EFRIS document and return statuses.",
       parameters: { type: "object", properties: {}, additionalProperties: false },
     },
   },
@@ -392,6 +393,10 @@ async function executeTool(
     };
   }
 
+  if (name === "get_tax_position") {
+    return await getTaxPosition(supabase, userId);
+  }
+
   if (name === "set_business_name") {
     const newName = String(args.name).trim();
     const { error } = await supabase
@@ -403,6 +408,77 @@ async function executeTool(
   }
 
   return { error: `Unknown tool: ${name}` };
+}
+
+// ---- Tax estimates (mirror of src/lib/tax/rules.ts; estimates only) ----
+const VAT_RATE = 0.18, VAT_THRESHOLD = 150_000_000;
+const IND_BANDS = [
+  { upTo: 2_820_000, base: 0, rate: 0, over: 0 },
+  { upTo: 4_020_000, base: 0, rate: 0.1, over: 2_820_000 },
+  { upTo: 4_920_000, base: 120_000, rate: 0.2, over: 4_020_000 },
+  { upTo: Infinity, base: 300_000, rate: 0.3, over: 4_920_000 },
+];
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+async function getTaxPosition(supabase: DbClient, userId: string) {
+  const now = new Date();
+  const y = now.getUTCFullYear(), m = now.getUTCMonth();
+  const mStart = iso(new Date(Date.UTC(y, m, 1))), mEnd = iso(new Date(Date.UTC(y, m + 1, 0)));
+  const fyY = m >= 6 ? y : y - 1;
+  const fyStart = iso(new Date(Date.UTC(fyY, 6, 1))), fyEnd = iso(new Date(Date.UTC(fyY + 1, 5, 30)));
+  const yearAgo = iso(new Date(Date.UTC(y - 1, m, now.getUTCDate())));
+
+  const [{ data: profile }, { data: entries }, { data: docs }, { data: returns }] = await Promise.all([
+    supabase.from("tax_profiles").select("*").eq("user_id", userId).maybeSingle(),
+    supabase.from("daily_entries").select("date,revenue,expenses").eq("user_id", userId).gte("date", yearAgo < fyStart ? yearAgo : fyStart),
+    supabase.from("efris_documents").select("doc_type,status").eq("user_id", userId),
+    supabase.from("tax_returns").select("return_type,period_start,status,manual_ack_reference").eq("user_id", userId).order("period_start", { ascending: false }).limit(10),
+  ]);
+  const rows = (entries ?? []) as { date: string; revenue: number; expenses: number }[];
+  const sum = (from: string, to: string) => rows.filter((r) => r.date >= from && r.date <= to)
+    .reduce((a, r) => ({ sales: a.sales + Number(r.revenue), expenses: a.expenses + Number(r.expenses), days: a.days + 1 }), { sales: 0, expenses: 0, days: 0 });
+  const month = sum(mStart, mEnd), fy = sum(fyStart, fyEnd), last12 = sum(yearAgo, iso(now));
+
+  const missing: string[] = [];
+  if (!profile) missing.push("Business tax details not filled in on the Tax page");
+  else {
+    if (!profile.tin) missing.push("TIN");
+    if (!profile.legal_name) missing.push("Registered business name");
+    if (profile.vat_status === "unknown") missing.push("VAT status (registered or not)");
+    if (profile.vat_status === "registered" && profile.efris_status !== "registered") missing.push("EFRIS registration (required for VAT-registered businesses)");
+  }
+  if (month.days === 0) missing.push("No sales/expenses recorded this month");
+
+  const vatRegistered = profile?.vat_status === "registered";
+  const incl = profile?.prices_include_vat ?? true;
+  const outputVat = vatRegistered ? (incl ? month.sales * VAT_RATE / (1 + VAT_RATE) : month.sales * VAT_RATE) : 0;
+
+  const taxable = Math.max(0, fy.sales - fy.expenses);
+  let incomeTax: number;
+  if (profile?.taxpayer_type === "company") incomeTax = taxable * 0.3;
+  else {
+    const b = IND_BANDS.find((x) => taxable <= x.upTo)!;
+    incomeTax = b.base + (taxable - b.over) * b.rate + (taxable > 120_000_000 ? (taxable - 120_000_000) * 0.1 : 0);
+  }
+
+  const counts: Record<string, number> = {};
+  for (const d of (docs ?? []) as { doc_type: string; status: string }[]) counts[`${d.doc_type}_${d.status}`] = (counts[`${d.doc_type}_${d.status}`] ?? 0) + 1;
+
+  return {
+    disclaimer: "Estimates from Kashie records using simplified Uganda rules. Not URA-confirmed. No live URA/EFRIS connection exists yet.",
+    business: { taxpayer_type: profile?.taxpayer_type ?? "unknown", vat_status: profile?.vat_status ?? "unknown", efris_status: profile?.efris_status ?? "not_registered", prices_include_vat: incl },
+    this_month: { period: `${mStart} to ${mEnd}`, recorded_sales: month.sales, recorded_expenses: month.expenses, days_recorded: month.days,
+      estimated_output_vat: Math.round(outputVat), note: vatRegistered ? "Input VAT can only be claimed for expenses with EFRIS tax invoices; not deducted here." : "Not VAT registered, so no VAT estimated." },
+    fiscal_year: { period: `${fyStart} to ${fyEnd}`, recorded_sales: fy.sales, recorded_expenses: fy.expenses, estimated_taxable_profit: taxable, estimated_income_tax: Math.round(incomeTax) },
+    vat_threshold: { last_12_months_sales: last12.sales, threshold: VAT_THRESHOLD, over_threshold: last12.sales >= VAT_THRESHOLD },
+    deadlines: [
+      ...(vatRegistered ? [{ return: "VAT for this month", due: iso(new Date(Date.UTC(y, m + 1, 15))) }] : []),
+      { return: "Income tax final return for this fiscal year", due: iso(new Date(Date.UTC(fyY + 1, 11, 31))) },
+    ],
+    missing_information: missing,
+    efris_documents: counts,
+    recent_returns: returns ?? [],
+  };
 }
 
 // ---- Pre-fetch financial context injected before the AI sees the user's message ----
