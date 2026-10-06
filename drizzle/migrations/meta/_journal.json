@@ -15,6 +15,13 @@
       "when": 1791120083544,
       "tag": "0001_profile_currency",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791310110186,
+      "tag": "0002_restrict_demo_reads",
+      "breakpoints": true
     }
   ]
 }
