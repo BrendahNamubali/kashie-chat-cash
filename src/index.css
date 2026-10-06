@@ -52,6 +52,9 @@
     --sidebar-accent-foreground: 0 0% 9%;
     --sidebar-border: 40 22% 81%;
     --sidebar-ring: 71 21% 32%;
+    --shadow-motion-lift: 0 6px 16px -10px hsl(var(--foreground) / 0.18);
+    --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --gradient-ai-accent: linear-gradient(110deg, transparent 35%, hsl(var(--ai) / 0.14) 50%, transparent 65%);
   }
 }
 
@@ -101,5 +104,65 @@
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+@layer utilities {
+  .motion-enter { animation: kashie-enter 280ms var(--motion-ease) both; }
+  .motion-page { animation: kashie-page 220ms ease-out both; }
+  .motion-card {
+    transition: translate 180ms var(--motion-ease), box-shadow 180ms ease-out;
+  }
+  .motion-control { transition-timing-function: var(--motion-ease); }
+  .motion-recorded { animation: kashie-recorded 650ms ease-out both; }
+  .kashie-ai-accent { background: var(--gradient-ai-accent); background-size: 200% 100%; }
+  .kashie-thinking-mark { animation: kashie-analyze-mark 1200ms ease-in-out 3; }
+  .kashie-thinking-bar {
+    width: 3px;
+    height: 10px;
+    border-radius: 2px;
+    background: hsl(var(--ai));
+    transform-origin: center;
+    animation: kashie-analyze 1200ms var(--motion-ease) 3 both;
+  }
+  .kashie-thinking-bar:nth-child(2) { animation-delay: 100ms; }
+  .kashie-thinking-bar:nth-child(3) { animation-delay: 200ms; }
+  a[aria-label="Kashie home"] {
+    cursor: pointer;
+    transition: translate 180ms var(--motion-ease), opacity 180ms ease-out, background-color 180ms ease-out;
+  }
+  a[aria-label="Kashie home"]:active { translate: 0 1px; }
+  button:not(:disabled):not(.motion-control) {
+    transition: background-color 150ms ease-out, color 150ms ease-out, scale 150ms var(--motion-ease);
+  }
+  button:not(:disabled):not(.motion-control):active { scale: 0.98; }
+  [role="alert"], [data-sonner-toast] { animation: kashie-enter 240ms var(--motion-ease) both; }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .motion-card:hover { translate: 0 -2px; box-shadow: var(--shadow-motion-lift); }
+  .motion-control:not(:disabled):hover { translate: 0 -1px; }
+  a[aria-label="Kashie home"]:hover { translate: 0 -1px; }
+}
+
+@keyframes kashie-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes kashie-page { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kashie-recorded {
+  0% { background-color: hsl(var(--positive) / 0.12); }
+  100% { background-color: transparent; }
+}
+/* Signature: three financial bars align as Kashie makes sense of the numbers.
+   Three quiet cycles only; the visible status remains until the real reply. */
+@keyframes kashie-analyze {
+  0%, 100% { transform: scaleY(0.65); opacity: 0.65; }
+  35% { transform: scaleY(1.5); opacity: 1; }
+  70% { transform: scaleY(1); opacity: 0.85; }
+}
+@keyframes kashie-analyze-mark {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--ai) / 0); }
+  45% { box-shadow: 0 0 0 4px hsl(var(--ai) / 0.12); }
 }

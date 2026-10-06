@@ -105,7 +105,7 @@ const AppLayout = ({ children }: Props) => {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
+      <main className="motion-page flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border flex">

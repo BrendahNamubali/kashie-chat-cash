@@ -114,7 +114,7 @@ const Home = () => {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:gap-3">
             {stats.map(({ label, num, fmt, icon: Icon }, i) => (
-              <div key={label} style={{ animationDelay: `${100 + i * 50}ms` }} className="animate-fade-up min-w-0 rounded-lg border border-border bg-card p-3.5 md:p-4 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-sm">
+              <div key={label} style={{ animationDelay: `${100 + i * 50}ms` }} className="motion-card animate-fade-up min-w-0 rounded-lg border border-border bg-card p-3.5 md:p-4">
                 <div className="flex items-center gap-2 text-muted-foreground"><Icon className="size-4 shrink-0" /><span className="text-xs font-medium">{label}</span></div>
                 <p className="mt-3 text-lg md:text-xl font-semibold text-foreground tabular-nums break-words">{loading ? "…" : num === null ? "—" : <CountUp value={num} format={fmt} />}</p>
                 {label === "Low Stock" && !loading && inventory.length === 0 && <p className="text-[11px] text-muted-foreground mt-1">No stock tracked yet</p>}
@@ -138,7 +138,7 @@ const Home = () => {
         </section>
 
         <section aria-labelledby="ask-title" className="animate-fade-up [animation-delay:260ms] relative overflow-hidden rounded-lg bg-ai-soft/60 border border-ai/30 p-4 md:p-5">
-          <div aria-hidden className="pointer-events-none absolute inset-0 animate-ai-sheen bg-[linear-gradient(110deg,transparent_35%,hsl(var(--ai)/0.18)_50%,transparent_65%)] bg-[length:200%_100%]" />
+          <div aria-hidden className="kashie-ai-accent pointer-events-none absolute inset-0 animate-ai-sheen" />
           <div className="flex items-center gap-2 mb-3"><Sparkles className="size-4 text-ai-strong animate-ai-pop" /><h2 id="ask-title" className="text-base font-semibold text-foreground">Ask Kashie</h2></div>
           <div className="grid gap-2 md:grid-cols-2">
             {questions.map((question) => (
