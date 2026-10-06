@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface Props {
   value: number;
@@ -8,12 +9,12 @@ interface Props {
 
 /** Counts up once from 0 to `value` on mount. Honors prefers-reduced-motion. */
 const CountUp = ({ value, format, duration = 700 }: Props) => {
-  const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const reduce = useReducedMotion();
   const [display, setDisplay] = useState(reduce ? value : 0);
   const raf = useRef<number>();
 
   useEffect(() => {
-    if (reduce) { setDisplay(value); return; }
+    if (reduce || duration <= 0) { setDisplay(value); return; }
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
@@ -25,7 +26,7 @@ const CountUp = ({ value, format, duration = 700 }: Props) => {
     return () => { if (raf.current) cancelAnimationFrame(raf.current); };
   }, [value, duration, reduce]);
 
-  return <>{format(display === value ? value : Math.round(display))}</>;
+  return <span aria-label={format(value)}>{format(reduce || display === value ? value : Math.round(display))}</span>;
 };
 
 export default CountUp;

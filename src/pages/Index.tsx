@@ -9,6 +9,7 @@ import { getLowStockGreeting, getTodayEntry, getProfile, getRecentEntries, type 
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface Message {
   id: string;
@@ -41,6 +42,7 @@ const Index = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const handledPrompt = useRef(false);
+  const reducedMotion = useReducedMotion();
   const { signOut } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiHistory, setAiHistory] = useState<AiMsg[]>([]);
@@ -65,8 +67,8 @@ const Index = () => {
   }, [input, autoGrow]);
 
   const scrollToBottom = useCallback(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+    bottomRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
+  }, [reducedMotion]);
 
   useEffect(() => {
     scrollToBottom();
@@ -238,7 +240,7 @@ const Index = () => {
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           <div className="max-w-2xl mx-auto w-full px-4 md:px-6">
             {showEmptyState ? (
-              <div className="flex flex-col items-center justify-center min-h-[60vh] text-center pt-12 pb-8">
+              <div className="motion-enter flex flex-col items-center justify-center min-h-[60vh] text-center pt-12 pb-8">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center text-2xl font-semibold mb-5 shadow-lg shadow-primary/20">
                   K
                 </div>
@@ -321,7 +323,7 @@ const Index = () => {
           <div className="max-w-2xl mx-auto w-full px-4 md:px-6 py-4">
             {/* Today's status indicator */}
             <div className="mb-2 flex items-center px-1">
-              <p className="text-xs text-muted-foreground">
+              <p key={todayEntry ? `${todayEntry.date}-${todayEntry.revenue}-${todayEntry.expenses}` : "not-logged"} className={`text-xs text-muted-foreground ${todayEntry ? "motion-recorded rounded-md" : ""}`}>
                 <span className="font-medium text-foreground/80">Today's status:</span>{" "}
                 {todayEntry ? (
                   todayEntry.profit > 0 ? (
@@ -339,7 +341,7 @@ const Index = () => {
 
             {/* Recent activity — last 5 logs */}
             {recentEntries.length > 0 && (
-              <div className="mb-3 rounded-2xl border border-border/70 bg-muted/20 px-4 py-3">
+              <div className="motion-enter mb-3 rounded-2xl border border-border/70 bg-muted/20 px-4 py-3">
                 <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
                   Recent activity
                 </p>

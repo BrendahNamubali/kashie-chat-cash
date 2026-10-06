@@ -5,3 +5,5 @@
 - [x] Tax & EFRIS Center page (overview, EFRIS, returns, business details).
 - [x] Tax: let Kashie's chat explain tax position from real data; add Tax to the main menu.
 - [x] Business currency: onboarding choice, one-time prompt, Settings, used everywhere incl. chat.
+- [ ] Refine shared motion, dashboard count-ups/charts, and Kashie's signature thinking state without changing functionality.
+- [ ] Verify motion, reduced-motion behavior, and existing page navigation.
