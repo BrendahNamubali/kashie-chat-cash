@@ -114,7 +114,9 @@
   .motion-card {
     transition: translate 180ms var(--motion-ease), box-shadow 180ms ease-out;
   }
-  .motion-control { transition-timing-function: var(--motion-ease); }
+  .motion-control {
+    transition: translate 150ms var(--motion-ease), transform 150ms var(--motion-ease), background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out;
+  }
   .motion-recorded { animation: kashie-recorded 650ms ease-out both; }
   .kashie-ai-accent { background: var(--gradient-ai-accent); background-size: 200% 100%; }
   .kashie-thinking-mark { animation: kashie-analyze-mark 1200ms ease-in-out 3; }
@@ -165,4 +167,15 @@
 @keyframes kashie-analyze-mark {
   0%, 100% { box-shadow: 0 0 0 0 hsl(var(--ai) / 0); }
   45% { box-shadow: 0 0 0 4px hsl(var(--ai) / 0.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-control, .motion-card, button, a[aria-label="Kashie home"], a[aria-label="Kashie home"] * {
+    translate: none !important;
+    scale: none !important;
+  }
+  .motion-control:active, a[aria-label="Kashie home"]:active,
+  a[aria-label="Kashie home"] .group-hover\:scale-105 {
+    transform: none !important;
+  }
 }

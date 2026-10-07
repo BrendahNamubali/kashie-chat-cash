@@ -254,8 +254,8 @@ const Dashboard = () => {
                         formatter={(v: number) => formatMoney(v)}
                       />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Bar dataKey="revenue" fill="hsl(var(--positive))" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="expenses" fill="hsl(var(--negative))" radius={[6, 6, 0, 0]} />
+                      <Bar isAnimationActive={!reducedMotion} animationDuration={600} animationEasing="ease-out" dataKey="revenue" fill="hsl(var(--positive))" radius={[6, 6, 0, 0]} />
+                      <Bar isAnimationActive={!reducedMotion} animationDuration={600} animationEasing="ease-out" dataKey="expenses" fill="hsl(var(--negative))" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
