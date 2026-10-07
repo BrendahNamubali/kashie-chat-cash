@@ -7,3 +7,5 @@
 - [x] Business currency: onboarding choice, one-time prompt, Settings, used everywhere incl. chat.
 - [x] Refine shared motion, dashboard count-ups/charts, and Kashie's signature thinking state without changing functionality.
 - [x] Verify motion, reduced-motion behavior, and existing page navigation.
+- [ ] Add Business Profile in the menu with saved business name, industry, and location.
+- [ ] Tailor Kashie's answers using saved business details and verify saving and navigation.

@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN industry text, ADD COLUMN location text;

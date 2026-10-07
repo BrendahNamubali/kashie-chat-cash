@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play, Settings, Landmark } from "lucide-react";
+import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play, Settings, Landmark, Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,7 @@ const navItems = [
   { to: "/reports", label: "Reports", icon: FileText },
   { to: "/tax", label: "Tax", icon: Landmark },
   { to: "/demo-center", label: "Demo", icon: Play },
+  { to: "/business-profile", label: "Business Profile", icon: Building2 },
 ];
 
 const AppLayout = ({ children }: Props) => {
@@ -88,6 +90,11 @@ const AppLayout = ({ children }: Props) => {
           <p className="text-sm font-semibold">Kashie</p>
         </Link>
         <div className="flex items-center gap-1">
+        <Button asChild variant="ghost" size="icon">
+          <NavLink to="/business-profile" aria-label="Business Profile" title="Business Profile" className={({ isActive }) => isActive ? "text-primary bg-primary/10" : "text-muted-foreground"}>
+            <Building2 className="w-4 h-4" />
+          </NavLink>
+        </Button>
         <Link to="/settings" className="p-2 rounded-md hover:bg-accent text-muted-foreground" aria-label="Settings">
           <Settings className="w-4 h-4" />
         </Link>
@@ -109,7 +116,7 @@ const AppLayout = ({ children }: Props) => {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border flex">
-        {navItems.map((item) => (
+        {navItems.filter((item) => item.to !== "/business-profile").map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
