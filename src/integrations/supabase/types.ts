@@ -290,6 +290,8 @@ export type Database = {
           currency: string | null
           full_name: string | null
           id: string
+          industry: string | null
+          location: string | null
           onboarding_completed: boolean
           updated_at: string
           user_id: string
@@ -301,6 +303,8 @@ export type Database = {
           currency?: string | null
           full_name?: string | null
           id?: string
+          industry?: string | null
+          location?: string | null
           onboarding_completed?: boolean
           updated_at?: string
           user_id: string
@@ -312,6 +316,8 @@ export type Database = {
           currency?: string | null
           full_name?: string | null
           id?: string
+          industry?: string | null
+          location?: string | null
           onboarding_completed?: boolean
           updated_at?: string
           user_id?: string
