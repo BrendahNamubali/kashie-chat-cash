@@ -17,6 +17,8 @@ export interface InventoryItem {
 export interface Profile {
   full_name: string | null;
   business_name: string | null;
+  industry: string | null;
+  location: string | null;
   contact: string | null;
   currency: string | null;
   onboarding_completed: boolean;
@@ -99,7 +101,7 @@ export async function getWeekEntries(): Promise<DailyEntry[]> {
 export async function getProfile(): Promise<Profile | null> {
   const { data } = await supabase
     .from("profiles")
-    .select("full_name, business_name, contact, onboarding_completed, currency")
+    .select("full_name, business_name, industry, location, contact, onboarding_completed, currency")
     .maybeSingle();
   return data ?? null;
 }
@@ -107,6 +109,8 @@ export async function getProfile(): Promise<Profile | null> {
 export async function updateProfile(updates: {
   full_name?: string;
   business_name?: string;
+  industry?: string | null;
+  location?: string | null;
   contact?: string | null;
   currency?: string;
   onboarding_completed?: boolean;

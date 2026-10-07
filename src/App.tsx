@@ -18,6 +18,7 @@ import Home from "./pages/Home.tsx";
 import Landing from "./pages/Landing.tsx";
 import Tax from "./pages/Tax.tsx";
 import Settings from "./pages/Settings.tsx";
+import BusinessProfile from "./pages/BusinessProfile.tsx";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => (
             />
             <Route path="/tax" element={<ProtectedRoute><Tax /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/business-profile" element={<ProtectedRoute><BusinessProfile /></ProtectedRoute>} />
             <Route path="/demo-center" element={<DemoCenter />} />
             <Route
               path="/demo-center/admin"
