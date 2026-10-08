@@ -13,13 +13,16 @@ interface Props {
   requireOnboarding?: boolean;
 }
 
+// Reminder dismissal is temporary, per user, and never a saved currency choice.
+const deferredCurrencyUsers = new Set<string>();
+
 const ProtectedRoute = ({ children, requireOnboarding = true }: Props) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const [checkingProfile, setCheckingProfile] = useState(requireOnboarding);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [needsCurrency, setNeedsCurrency] = useState(false);
-  const [choice, setChoice] = useState("UGX");
+  const [choice, setChoice] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -31,10 +34,16 @@ const ProtectedRoute = ({ children, requireOnboarding = true }: Props) => {
       const profile = await getProfile();
       setCurrency(profile?.currency);
       setNeedsOnboarding(!profile?.onboarding_completed);
-      setNeedsCurrency(!!profile?.onboarding_completed && !profile?.currency);
+      setNeedsCurrency(!!profile?.onboarding_completed && !profile?.currency && !deferredCurrencyUsers.has(user.id));
       setCheckingProfile(false);
     })();
   }, [user, loading, requireOnboarding]);
+
+  const dismissCurrency = () => {
+    if (saving || !user) return;
+    deferredCurrencyUsers.add(user.id);
+    setNeedsCurrency(false);
+  };
 
   const saveCurrency = async () => {
     if (!isValidCurrency(choice)) return toast.error("Pick a currency first");
@@ -62,14 +71,16 @@ const ProtectedRoute = ({ children, requireOnboarding = true }: Props) => {
   return (
     <>
       {children}
-      <Dialog open={needsCurrency}>
-        <DialogContent className="max-w-sm [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
-          <DialogHeader>
+      <Dialog open={needsCurrency} onOpenChange={(open) => { if (!open) dismissCurrency(); }}>
+        <DialogContent className="max-w-sm" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => { if (saving) e.preventDefault(); }}>
+          <DialogHeader className="pr-6">
             <DialogTitle>Which currency does your business use?</DialogTitle>
             <DialogDescription>Kashie will show all your amounts in this currency. Your recorded numbers stay exactly the same.</DialogDescription>
           </DialogHeader>
           <CurrencySelect value={choice} onChange={setChoice} />
-          <Button onClick={saveCurrency} disabled={saving}>{saving ? "Saving…" : "Save currency"}</Button>
+          <p className="text-sm text-muted-foreground">Not ready? You can choose your currency later in Settings.</p>
+          <Button onClick={saveCurrency} disabled={saving || !isValidCurrency(choice)}>{saving ? "Saving…" : "Save currency"}</Button>
+          <Button variant="ghost" onClick={dismissCurrency} disabled={saving}>Skip for now</Button>
         </DialogContent>
       </Dialog>
     </>
