@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import KashieLogo from "@/components/KashieLogo";
 
 const emailSchema = z.string().trim().email("Enter a valid email").max(255);
 const passwordSchema = z
@@ -158,6 +159,7 @@ const Auth = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="w-full max-w-md text-center">
+          <Link to="/" aria-label="Kashie home" className="flex justify-center mb-4"><KashieLogo className="w-64 h-20" /></Link>
           <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-5 text-3xl">
             📬
           </div>
@@ -202,8 +204,8 @@ const Auth = () => {
       <div className="w-full max-w-md">
         {/* Logo + headline */}
         <div className="flex flex-col items-center text-center mb-8">
-          <Link to="/" aria-label="Kashie home" className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-semibold mb-4 transition-transform duration-200 hover:scale-105 active:scale-95">
-            K
+          <Link to="/" aria-label="Kashie home" className="flex items-center justify-center mb-4 transition-transform duration-200 hover:scale-105 active:scale-95">
+            <KashieLogo className="w-64 h-20" />
           </Link>
           <h1 className="text-2xl font-semibold text-foreground mb-1.5">
             {mode === "signin" ? "Welcome back" : "Get started with Kashie"}

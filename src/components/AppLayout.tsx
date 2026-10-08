@@ -4,6 +4,7 @@ import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play, Settings
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import KashieLogo from "@/components/KashieLogo";
 
 interface Props {
   children: ReactNode;
@@ -28,13 +29,7 @@ const AppLayout = ({ children }: Props) => {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 flex-col border-r border-border bg-sidebar">
         <Link to="/" aria-label="Kashie home" className="group px-5 py-5 border-b border-sidebar-border flex items-center gap-2.5 hover:bg-sidebar-accent/60 transition-colors">
-          <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-sm transition-transform duration-200 group-hover:scale-105">
-            K
-          </div>
-          <div className="leading-tight">
-            <p className="text-sm font-semibold text-sidebar-foreground">Kashie</p>
-            <p className="text-[10px] font-medium text-ai-strong">AI CFO</p>
-          </div>
+          <KashieLogo className="w-full h-10" />
         </Link>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map((item) => (
@@ -84,10 +79,7 @@ const AppLayout = ({ children }: Props) => {
       {/* Mobile top bar */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background sticky top-0 z-30">
         <Link to="/" aria-label="Kashie home" className="flex items-center gap-2 transition-opacity hover:opacity-80 active:scale-95">
-          <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">
-            K
-          </div>
-          <p className="text-sm font-semibold">Kashie</p>
+          <KashieLogo variant="icon" className="size-7" />
         </Link>
         <div className="flex items-center gap-1">
         <Button asChild variant="ghost" size="icon">
