@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
@@ -6,13 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import CurrencySelect, { isValidCurrency } from "@/components/CurrencySelect";
 import { getCurrency, setCurrency } from "@/lib/currency";
-import { updateProfile } from "@/lib/finance";
+import { getProfile, updateProfile } from "@/lib/finance";
 
 const Settings = () => {
-  const saved = getCurrency();
-  const [value, setValue] = useState(saved);
+  const [saved, setSaved] = useState<string | null>(null);
+  const [value, setValue] = useState(getCurrency());
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const changed = value !== saved;
+
+  useEffect(() => {
+    let active = true;
+    getProfile().then((profile) => {
+      if (!active) return;
+      setSaved(profile?.currency ?? null);
+      setValue(profile?.currency ?? "");
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, []);
 
   const save = async () => {
     if (!isValidCurrency(value)) return toast.error("Enter a 3-letter currency code");
@@ -35,13 +47,14 @@ const Settings = () => {
             <p className="text-sm text-muted-foreground">Used for every amount across Kashie, including reports and Kashie's chat replies.</p>
           </div>
           <CurrencySelect id="currency" value={value} onChange={setValue} />
-          {changed && (
+          {!loading && !saved && <p className="text-sm text-muted-foreground">Your business currency is not set yet.</p>}
+          {changed && saved && (
             <p className="flex gap-2 text-sm rounded-xl bg-warning-soft text-warning-strong p-3">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               This only changes how amounts are shown. Your existing numbers are not converted, so 50,000 stays 50,000.
             </p>
           )}
-          <Button onClick={save} disabled={!changed || saving}>{saving ? "Saving…" : "Save currency"}</Button>
+          <Button onClick={save} disabled={loading || !changed || saving || !isValidCurrency(value)}>{saving ? "Saving…" : "Save currency"}</Button>
         </section>
       </div>
     </AppLayout>
