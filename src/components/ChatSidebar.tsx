@@ -1,5 +1,6 @@
 import { MessageSquarePlus, PanelLeftClose, PanelLeft, LogOut } from "lucide-react";
 import type { Profile } from "@/lib/finance";
+import KashieLogo from "@/components/KashieLogo";
 
 interface ChatSidebarProps {
   open: boolean;
@@ -14,7 +15,7 @@ const ChatSidebar = ({ open, onToggle, onNewChat, onSignOut, profile, history }:
   const initial =
     profile?.business_name?.trim()?.charAt(0)?.toUpperCase() ??
     profile?.full_name?.trim()?.charAt(0)?.toUpperCase() ??
-    "K";
+    null;
 
   return (
     <>
@@ -74,12 +75,10 @@ const ChatSidebar = ({ open, onToggle, onNewChat, onSignOut, profile, history }:
         {(profile || onSignOut) && (
           <div className="p-2 border-t border-sidebar-border">
             <div className="flex items-center gap-2 px-2 py-2">
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                {initial}
-              </div>
+              {initial ? <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold flex-shrink-0">{initial}</div> : <KashieLogo variant="icon" />}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {profile?.business_name ?? profile?.full_name ?? "Kashie"}
+                  {profile?.business_name ?? profile?.full_name ?? <KashieLogo className="w-32 h-8" />}
                 </p>
                 {profile?.full_name && profile?.business_name && (
                   <p className="text-[11px] text-muted-foreground truncate">

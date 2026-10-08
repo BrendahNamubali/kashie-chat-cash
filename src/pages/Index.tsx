@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import KashieLogo from "@/components/KashieLogo";
 
 interface Message {
   id: string;
@@ -220,11 +221,10 @@ const Index = () => {
             </div>
           )}
           <Link to="/" aria-label="Kashie home" className="flex flex-col items-center leading-tight rounded-md px-2 transition-opacity hover:opacity-75">
-            <h1 className="font-semibold text-sm text-foreground">
-              {business ?? "Kashie"}
-            </h1>
+            <KashieLogo className="hidden md:block w-40 h-8" />
+            <KashieLogo variant="icon" className="md:hidden size-7" />
             {business && (
-              <span className="text-[10px] text-muted-foreground">Kashie</span>
+              <h1 className="text-[10px] text-muted-foreground max-w-48 truncate">{business}</h1>
             )}
           </Link>
           <button
@@ -241,9 +241,7 @@ const Index = () => {
           <div className="max-w-2xl mx-auto w-full px-4 md:px-6">
             {showEmptyState ? (
               <div className="motion-enter flex flex-col items-center justify-center min-h-[60vh] text-center pt-12 pb-8">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center text-2xl font-semibold mb-5 shadow-lg shadow-primary/20">
-                  K
-                </div>
+                <KashieLogo variant="icon" className="size-16 mb-5" />
                 <h2 className="text-2xl font-semibold text-foreground mb-1.5">
                   {greetingTitle}
                 </h2>

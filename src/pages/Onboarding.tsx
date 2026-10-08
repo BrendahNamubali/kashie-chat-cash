@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import CurrencySelect, { isValidCurrency } from "@/components/CurrencySelect";
 import { setCurrency } from "@/lib/currency";
+import KashieLogo from "@/components/KashieLogo";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -71,8 +72,8 @@ const Onboarding = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center text-center mb-8">
-          <Link to="/" aria-label="Kashie home" className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-semibold mb-4 transition-transform duration-200 hover:scale-105 active:scale-95">
-            K
+          <Link to="/" aria-label="Kashie home" className="flex items-center justify-center mb-4 transition-transform duration-200 hover:scale-105 active:scale-95">
+            <KashieLogo className="w-64 h-20" />
           </Link>
           <h1 className="text-2xl font-semibold text-foreground mb-2">
             Welcome to Kashie 👋
