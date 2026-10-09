@@ -11,3 +11,6 @@
 - [x] Tailor Kashie's answers using saved business details and verify saving and navigation.
 - [x] Replace all old brand marks with official full/icon logo assets and update favicon.
 - [x] Verify logo rendering, home links, and remaining branding across the app.
+- [ ] Add guided URA preparation using recorded data and downloadable draft PDFs.
+- [ ] Add real Forecast, Financing, Pricing, and Subscription screens and connect navigation.
+- [ ] Verify wizard, PDF output, page navigation, and mobile layouts.
