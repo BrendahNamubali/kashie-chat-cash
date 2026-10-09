@@ -59,9 +59,9 @@ const Reports = () => {
     })();
   }, []);
 
-  const handleExport = (kind: Kind, title: string) => {
+  const handleExport = async (kind: Kind, title: string) => {
     try {
-      exportReportPdf({ kind, entries, inventory, profile }, `Kashie-${title.replace(/\s+/g, "-")}-${Date.now()}.pdf`);
+      await exportReportPdf({ kind, entries, inventory, profile }, `Kashie-${title.replace(/\s+/g, "-")}-${Date.now()}.pdf`);
       toast.success("Report downloaded");
     } catch (e) {
       console.error(e);
@@ -69,9 +69,9 @@ const Reports = () => {
     }
   };
 
-  const handlePrint = (kind: Kind) => {
+  const handlePrint = async (kind: Kind) => {
     try {
-      printReportPdf({ kind, entries, inventory, profile });
+      await printReportPdf({ kind, entries, inventory, profile });
     } catch (e) {
       console.error(e);
       toast.error("Couldn't open print view");
