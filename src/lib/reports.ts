@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { DailyEntry, InventoryItem, Profile } from "@/lib/finance";
 import { computeHealthScore, computeAlerts, buildExpenseBreakdown } from "@/lib/insights";
+import fullLogo from "@/assets/kashie-full.png.asset.json";
 
 type ReportKind = "pnl" | "expenses" | "inventory" | "health";
 
@@ -15,13 +16,13 @@ interface BuildArgs {
 
 const money = (n: number) => formatMoney(n);
 
-function header(doc: jsPDF, title: string, profile: Profile | null) {
+function header(doc: jsPDF, title: string, profile: Profile | null, logo: Uint8Array) {
   doc.setFillColor(91, 97, 64);
   doc.rect(0, 0, doc.internal.pageSize.getWidth(), 60, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
-  doc.text("Kashie", 40, 30);
+  doc.addImage(logo, "PNG", 40, 3, 64, 64 * 768 / 1374);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.text("AI CFO Report", 40, 46);
@@ -40,11 +41,14 @@ function header(doc: jsPDF, title: string, profile: Profile | null) {
   doc.text(title, 40, 90);
 }
 
-export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs): jsPDF {
+export async function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs): Promise<jsPDF> {
+  const response = await fetch(fullLogo.url);
+  if (!response.ok) throw new Error("Couldn't load the report logo");
+  const logo = new Uint8Array(await response.arrayBuffer());
   const doc = new jsPDF({ unit: "pt", format: "a4" });
 
   if (kind === "pnl") {
-    header(doc, "Profit & Loss Report", profile);
+    header(doc, "Profit & Loss Report", profile, logo);
     const rev = entries.reduce((s, e) => s + Number(e.revenue || 0), 0);
     const exp = entries.reduce((s, e) => s + Number(e.expenses || 0), 0);
     const profit = rev - exp;
@@ -77,7 +81,7 @@ export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs)
   }
 
   if (kind === "expenses") {
-    header(doc, "Expense Breakdown Report", profile);
+    header(doc, "Expense Breakdown Report", profile, logo);
     const breakdown = buildExpenseBreakdown(entries);
     const total = breakdown.reduce((s, b) => s + b.value, 0);
     autoTable(doc, {
@@ -95,7 +99,7 @@ export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs)
   }
 
   if (kind === "inventory") {
-    header(doc, "Inventory Report", profile);
+    header(doc, "Inventory Report", profile, logo);
     autoTable(doc, {
       startY: 110,
       head: [["Item", "Quantity", "Unit", "Status"]],
@@ -112,7 +116,7 @@ export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs)
   }
 
   if (kind === "health") {
-    header(doc, "Business Health Report", profile);
+    header(doc, "Business Health Report", profile, logo);
     const h = computeHealthScore(entries);
     const alerts = computeAlerts(entries, inventory);
     autoTable(doc, {
@@ -154,16 +158,21 @@ export function buildReportPdf({ kind, entries, inventory, profile }: BuildArgs)
   return doc;
 }
 
-export function exportReportPdf(args: BuildArgs, filename: string) {
-  const doc = buildReportPdf(args);
+export async function exportReportPdf(args: BuildArgs, filename: string) {
+  const doc = await buildReportPdf(args);
   doc.save(filename);
 }
 
-export function printReportPdf(args: BuildArgs) {
-  const doc = buildReportPdf(args);
-  const blob = doc.output("bloburl");
-  const w = window.open(blob as unknown as string, "_blank");
-  if (w) {
+export async function printReportPdf(args: BuildArgs) {
+  const w = window.open("", "_blank");
+  try {
+    const doc = await buildReportPdf(args);
+    const blob = doc.output("bloburl");
+    if (!w) return;
     w.addEventListener("load", () => w.print());
+    w.location.href = blob as unknown as string;
+  } catch (error) {
+    w?.close();
+    throw error;
   }
 }
