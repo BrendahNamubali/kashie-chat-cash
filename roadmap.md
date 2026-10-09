@@ -9,5 +9,5 @@
 - [x] Verify motion, reduced-motion behavior, and existing page navigation.
 - [x] Add Business Profile in the menu with saved business name, industry, and location.
 - [x] Tailor Kashie's answers using saved business details and verify saving and navigation.
-- [ ] Replace all old brand marks with official full/icon logo assets and update favicon.
-- [ ] Verify logo rendering, home links, and remaining branding across the app.
+- [x] Replace all old brand marks with official full/icon logo assets and update favicon.
+- [x] Verify logo rendering, home links, and remaining branding across the app.
