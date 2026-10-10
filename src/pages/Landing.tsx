@@ -15,7 +15,7 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="mx-auto max-w-6xl px-5 h-16 flex items-center justify-between">
         <Link to="/" className="group flex items-center gap-2.5 font-semibold text-lg transition-opacity hover:opacity-85" aria-label="Kashie home"><KashieLogo className="w-48 h-14" /></Link>
-        <Button asChild variant="ghost" size="sm"><Link to="/auth">Sign In <ArrowRight className="ml-1 size-4" /></Link></Button>
+        <div className="flex items-center gap-1"><Button asChild variant="ghost" size="sm"><Link to="/pricing">Pricing</Link></Button><Button asChild variant="ghost" size="sm"><Link to="/auth">Sign In <ArrowRight className="ml-1 size-4" /></Link></Button></div>
       </header>
       <main>
         <section className="relative min-h-[470px] md:min-h-[520px] flex items-center overflow-hidden bg-foreground">

@@ -19,6 +19,10 @@ import Landing from "./pages/Landing.tsx";
 import Tax from "./pages/Tax.tsx";
 import Settings from "./pages/Settings.tsx";
 import BusinessProfile from "./pages/BusinessProfile.tsx";
+import Forecast from "./pages/Forecast";
+import Financing from "./pages/Financing";
+import Pricing from "./pages/Pricing";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +42,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<RootPage />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route
               path="/onboarding"
               element={
@@ -79,6 +84,9 @@ const App = () => (
               }
             />
             <Route path="/tax" element={<ProtectedRoute><Tax /></ProtectedRoute>} />
+            <Route path="/forecast" element={<ProtectedRoute><Forecast /></ProtectedRoute>} />
+            <Route path="/financing" element={<ProtectedRoute><Financing /></ProtectedRoute>} />
+            <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/business-profile" element={<ProtectedRoute><BusinessProfile /></ProtectedRoute>} />
             <Route path="/demo-center" element={<DemoCenter />} />

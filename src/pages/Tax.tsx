@@ -12,6 +12,7 @@ import { RETURN_LABELS, TAX_RULES_VERSION, type ReturnType } from "@/lib/tax/rul
 import EfrisPanel from "@/components/tax/EfrisPanel";
 import ReturnsPanel from "@/components/tax/ReturnsPanel";
 import BusinessDetails from "@/components/tax/BusinessDetails";
+import TaxReturnWizard from "@/components/tax/TaxReturnWizard";
 
 export interface TaxData {
   entries: DailyEntry[];
@@ -84,6 +85,7 @@ const Tax = () => {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="efris">EFRIS</TabsTrigger>
               <TabsTrigger value="returns">Returns</TabsTrigger>
+              <TabsTrigger value="wizard">Return wizard</TabsTrigger>
               <TabsTrigger value="details">Business details</TabsTrigger>
             </TabsList>
 
@@ -141,6 +143,7 @@ const Tax = () => {
 
             <TabsContent value="efris" className="mt-6"><EfrisPanel data={data} /></TabsContent>
             <TabsContent value="returns" className="mt-6"><ReturnsPanel data={data} /></TabsContent>
+            <TabsContent value="wizard" className="mt-6"><TaxReturnWizard data={data} /></TabsContent>
             <TabsContent value="details" className="mt-6"><BusinessDetails data={data} /></TabsContent>
           </Tabs>
         )}
