@@ -20,9 +20,9 @@ const actions = [
   { label: "Add Expense", icon: Receipt, prompt: "I spent ___ today on ___" },
   { label: "Inventory", icon: Package, prompt: "Show me my current stock" },
   { label: "Reports", icon: FileText, to: "/reports" },
-  { label: "Forecast", icon: CalendarClock, prompt: "Based on my recorded business data, what might I expect next? If there isn't enough data, tell me." },
+  { label: "Forecast", icon: CalendarClock, to: "/forecast" },
   { label: "Tax", icon: Wallet, to: "/tax" },
-  { label: "Financing", icon: Landmark, prompt: "Based on my recorded business data, what should I consider before seeking financing?" },
+  { label: "Financing", icon: Landmark, to: "/financing" },
 ];
 
 function getGreeting() {

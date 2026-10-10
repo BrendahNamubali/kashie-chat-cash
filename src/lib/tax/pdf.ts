@@ -58,7 +58,7 @@ export async function buildTaxReturnPdf(args: TaxPdfArgs) {
   const rows = entries.filter((entry) => entry.date >= period.start && entry.date <= period.end).sort((a, b) => a.date.localeCompare(b.date));
   if (rows.length) autoTable(doc, {
     head: [["Recorded date", "Sales", "Expenses"]], body: rows.map((row) => [row.date, formatMoney(row.revenue, "UGX"), formatMoney(row.expenses, "UGX")]),
-    styles: { fontSize: 9 }, headStyles: { fillColor: [91, 97, 64] }, margin: { bottom: 45 },
+    styles: { fontSize: 9 }, headStyles: { fillColor: [91, 97, 64] }, margin: { bottom: 45 }, pageBreak: "avoid",
   });
   for (let page = 1; page <= doc.getNumberOfPages(); page++) {
     doc.setPage(page); doc.setFontSize(8); doc.setTextColor(100);
