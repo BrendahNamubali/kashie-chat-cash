@@ -1,10 +1,11 @@
 import { ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play, Settings, Landmark, Building2 } from "lucide-react";
+import { House, LayoutDashboard, MessageSquare, FileText, LogOut, Play, Settings, Landmark, Building2, CalendarClock, CreditCard, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import KashieLogo from "@/components/KashieLogo";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Props {
   children: ReactNode;
@@ -16,6 +17,10 @@ const navItems = [
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/reports", label: "Reports", icon: FileText },
   { to: "/tax", label: "Tax", icon: Landmark },
+  { to: "/forecast", label: "Forecast", icon: CalendarClock },
+  { to: "/financing", label: "Financing", icon: Landmark },
+  { to: "/subscription", label: "Subscription", icon: CreditCard },
+  { to: "/pricing", label: "Pricing", icon: CreditCard },
   { to: "/demo-center", label: "Demo", icon: Play },
   { to: "/business-profile", label: "Business Profile", icon: Building2 },
 ];
@@ -31,7 +36,7 @@ const AppLayout = ({ children }: Props) => {
         <Link to="/" aria-label="Kashie home" className="group px-5 py-5 border-b border-sidebar-border flex items-center gap-2.5 hover:bg-sidebar-accent/60 transition-colors">
           <KashieLogo className="w-full h-10" />
         </Link>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -108,7 +113,7 @@ const AppLayout = ({ children }: Props) => {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border flex">
-        {navItems.filter((item) => item.to !== "/business-profile").map((item) => (
+        {navItems.filter((item) => ["/home", "/chat", "/reports", "/tax"].includes(item.to)).map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -123,6 +128,7 @@ const AppLayout = ({ children }: Props) => {
             {item.label}
           </NavLink>
         ))}
+        <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" className="flex-1 min-w-0 h-auto rounded-none flex flex-col gap-0.5 py-2.5 text-[10px] text-muted-foreground" aria-label="More pages"><MoreHorizontal className="w-5 h-5" />More</Button></DropdownMenuTrigger><DropdownMenuContent align="end" side="top" className="mb-2">{navItems.filter((item) => !["/home", "/chat", "/reports", "/tax"].includes(item.to)).map((item) => <DropdownMenuItem key={item.to} asChild><Link to={item.to}><item.icon className="w-4 h-4 mr-2" />{item.label}</Link></DropdownMenuItem>)}</DropdownMenuContent></DropdownMenu>
       </nav>
     </div>
   );
